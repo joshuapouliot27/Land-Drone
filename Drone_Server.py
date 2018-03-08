@@ -1,8 +1,11 @@
 import logging, json, time
 import watchdog
 
-# import RPi.GPIO as GPIO
-# import fakeRPiGPIO
+# import RPi.GPIO as GPIO # For the pi
+from RPi import GPIO # For editing
+GPIO.VERBOSE = False # For editing
+import gpsd
+GPIO.VERBOSE = False
 
 # Action Variables
 moving_Left = False
@@ -17,21 +20,19 @@ current_Direction_Degrees = None
 current_Distance_Ahead = None
 
 # Pin Number Variables
-left_motor_direction_pin = 0
-right_motor_direction_pin = 0
-motor_pwm_speed_pin = 0
-gps_1_pin = 0
-gps_2_pin = 0
-gps_3_pin = 0
-gps_4_pin = 0
-sonar_1_pin = 0
-sonar_2_pin = 0
-stop_button_output_pin = 0
-stop_button_input_pin = 0
+left_motor_direction_pin = 15
+right_motor_direction_pin = 16
+left_motor_pwm_speed_pin = 11
+right_motor_speed_pin = 12
+#gps_rx_pin = 8
+#gps_tx_pin = 10
+sonar_trig_pin = 18
+sonar_echo_pin = 22
+stop_button_input_pin = 19
 
 # File Variables
 program_Changed_File = False
-json_Filename = "land_drone_JSON_file"
+json_Filename = "land_drone_JSON_file.JSON"
 
 # Misc Variables
 stop_Everything = False
@@ -87,19 +88,75 @@ def set_variables_from_json_data(json_data):
 def get_position_and_direction():
     got_current_position = False
     global current_Latitude, current_Longitude, current_Direction_Degrees
-    #do stuff
+    gps_packet = gpsd.get_current()
+    print("Latitude: "+str(gps_packet.lat)+" Longitude: "+str(gps_packet.lon))
     return got_current_position
 
 def get_distance_ahead():
-    got_distance_ahead = False
-    global current_Distance_Ahead
-    #do stuff
-    return got_distance_ahead
+    time_start, time_end = 0
+    distance = None
 
-def setup_gpio_pine():
+    GPIO.output(sonar_trig_pin,False)
+    time.sleep(.05)
+
+    GPIO.output(sonar_trig_pin,True)
+    time.sleep(.000001)
+    GPIO.output(sonar_trig_pin,False)
+
+    while (GPIO.input(sonar_echo_pin) == 0):
+        time_start = time.time()
+    while (GPIO.input(sonar_echo_pin) == 1):
+        time_end = time.time()
+
+    total_time = time_end - time_start
+    distance = (total_time / 2) * 1125.33 # Calculated in ft/s
+
+    return distance
+
+def setup_gpio_pins():
     gpio_pins_setup = False
-    #do stuff
+    GPIO.setmode(GPIO.BOARD)
+    # Stop Button
+    GPIO.setup(stop_button_input_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    # GPS
+    # Sonar
+    GPIO.setup(sonar_echo_pin,GPIO.IN)
+    GPIO.setup(sonar_trig_pin,GPIO.OUT)
+    GPIO.output(sonar_trig_pin,False)
+    # Drive Motor
+    GPIO.setup(left_motor_direction_pin,GPIO.OUT)
+    GPIO.output(left_motor_direction_pin,False)
+    GPIO.setup(right_motor_direction_pin,GPIO.OUT)
+    GPIO.output(right_motor_direction_pin, False)
+    time.sleep(1)
     return gpio_pins_setup
+
+def setup_GPS():
+    gpsd.connect()
+    packet = gpsd.get_current()
+    if (packet.mode < 2):
+        logging.warning("GPS does not have a fix!")
+    counter = 0
+    while (packet.mode < 2):
+        if (counter > (150)):
+            logging.error("GPS cannot get a fix!")
+            return False
+        packet = gpsd.get_current()
+        logging.warning("GPS still does not have a fix.")
+        counter+=1
+        time.sleep(.2)
+    logging.debug("GPS has fix.")
+    return True
+
+def setupLogging():
+    logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',filename="drone.log",level=logging.DEBUG)
+    return
+
+def check_stop_button():
+    button_pressed = False
+    if (not (GPIO.input(stop_button_input_pin))):
+        button_pressed = True
+    return button_pressed
 
 print("Wrote File: " + str(write_json_file(moving_Left, moving_Right, moving_Forward, moving_Backward, current_Latitude,
                                            current_Longitude, current_Direction_Degrees, current_Distance_Ahead,
@@ -107,9 +164,18 @@ print("Wrote File: " + str(write_json_file(moving_Left, moving_Right, moving_For
 print("Read File as: " + str(read_json_file(json_Filename)) + ".")
 print("What None prints as in JSON: " + str(json.dumps({"a": None})))
 
-while True:
-    if (stop_Everything):
-        break
+# while True:
+#
+#     if (stop_Everything):
+#         break
+#
+#     time.sleep((loop_Delay) / 1000)
+#     break
+#GPIO.cleanup()
 
-    time.sleep((loop_Delay) / 1000)
-    break
+setupLogging()
+setup_gpio_pins()
+setup_GPS()
+get_distance_ahead()
+get_position_and_direction()
+GPIO.cleanup()
