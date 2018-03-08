@@ -93,7 +93,8 @@ def get_position_and_direction():
     return got_current_position
 
 def get_distance_ahead():
-    time_start, time_end = 0
+    time_start = 0
+    time_end = 0
     distance = None
 
     GPIO.output(sonar_trig_pin,False)
