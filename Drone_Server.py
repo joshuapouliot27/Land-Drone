@@ -4,8 +4,8 @@ import watchdog
 # import RPi.GPIO as GPIO # For the pi
 from RPi import GPIO # For editing
 GPIO.VERBOSE = False # For editing
+
 import gpsd
-GPIO.VERBOSE = False
 
 # Action Variables
 moving_Left = False
@@ -35,6 +35,8 @@ program_Changed_File = False
 json_Filename = "land_drone_JSON_file.JSON"
 
 # Misc Variables
+gateway = None
+sensor = None
 stop_Everything = False
 loop_Delay = 1  # How much time in milliseconds to wait after every loop
 
@@ -87,10 +89,14 @@ def set_variables_from_json_data(json_data):
 
 def get_position_and_direction():
     got_current_position = False
+    got_direction = False
     global current_Latitude, current_Longitude, current_Direction_Degrees
     gps_packet = gpsd.get_current()
-    print("Latitude: "+str(gps_packet.lat)+" Longitude: "+str(gps_packet.lon))
-    return got_current_position
+    if (gps_packet.mode > 1):
+        current_Longitude=gps_packet.lon
+        current_Latitude=gps_packet.lat
+        got_current_position=True
+    return (got_current_position and got_direction)
 
 def get_distance_ahead():
     time_start = 0
@@ -120,6 +126,12 @@ def setup_gpio_pins():
     # Stop Button
     GPIO.setup(stop_button_input_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     # GPS
+    setup_GPS()
+    # Magnometer
+    gw = LinuxDevice(1)
+    sensor = HMC5883L(gateway)
+    sensor.config(averaging=4, datarate=15)
+    sensor.set_resolution(1090)
     # Sonar
     GPIO.setup(sonar_echo_pin,GPIO.IN)
     GPIO.setup(sonar_trig_pin,GPIO.OUT)
@@ -176,7 +188,6 @@ print("What None prints as in JSON: " + str(json.dumps({"a": None})))
 
 setupLogging()
 setup_gpio_pins()
-setup_GPS()
 current_Distance_Ahead = get_distance_ahead()
 print("Distance: " + str(current_Distance_Ahead) + "ft")
 get_position_and_direction()
