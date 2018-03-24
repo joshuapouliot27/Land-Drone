@@ -1,10 +1,9 @@
 import logging, json, time
 import watchdog
 
-# import RPi.GPIO as GPIO # For the pi
-from RPi import GPIO # For editing
-GPIO.VERBOSE = False # For editing
-
+import RPi.GPIO as GPIO  # For the pi
+# from RPi import GPIO # For editing
+# GPIO.VERBOSE = False # For editing
 import gpsd
 
 # Action Variables
@@ -20,17 +19,15 @@ current_Direction_Degrees = None
 current_Distance_Ahead = None
 
 # Pin Number Variables
-left_motor_direction_pin = 15
-right_motor_direction_pin = 16
-left_motor_pwm_speed_pin = 11
-right_motor_speed_pin = 12
-#gps_rx_pin = 8
-#gps_tx_pin = 10
-sonar_trig_pin = 18
-sonar_echo_pin = 22
-stop_button_input_pin = 19
+left_motor_direction_pin = 22
+right_motor_direction_pin = 23
+left_motor_pwm_speed_pin = 17
+right_motor_pwm_speed_pin = 18
+sonar_trig_pin = 24
+sonar_echo_pin = 25
+stop_button_input_pin = 10
 
-#GPIO variables
+# GPIO variables
 left_motor_pwm = None
 right_motor_pwm = None
 
@@ -82,6 +79,7 @@ def read_json_file(json_filename):
         data = json.load(file)
     return data
 
+
 def set_variables_from_json_data(json_data):
     global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
     moving_Forward = bool(json_data["moving_forward"])
@@ -90,28 +88,26 @@ def set_variables_from_json_data(json_data):
     moving_Left = bool(json_data["moving_left"])
     return
 
+
 def get_position_and_direction():
     got_current_position = False
-    got_direction = False
     global current_Latitude, current_Longitude, current_Direction_Degrees
     gps_packet = gpsd.get_current()
-    if (gps_packet.mode > 1):
-        current_Longitude=gps_packet.lon
-        current_Latitude=gps_packet.lat
-        got_current_position=True
-    return (got_current_position and got_direction)
+    print("Latitude: " + str(gps_packet.lat) + " Longitude: " + str(gps_packet.lon))
+    return got_current_position
+
 
 def get_distance_ahead():
     time_start = 0
     time_end = 0
     distance = None
 
-    GPIO.output(sonar_trig_pin,False)
+    GPIO.output(sonar_trig_pin, False)
     time.sleep(.05)
 
-    GPIO.output(sonar_trig_pin,True)
+    GPIO.output(sonar_trig_pin, True)
     time.sleep(.000001)
-    GPIO.output(sonar_trig_pin,False)
+    GPIO.output(sonar_trig_pin, False)
 
     while (GPIO.input(sonar_echo_pin) == 0):
         time_start = time.time()
@@ -119,36 +115,37 @@ def get_distance_ahead():
         time_end = time.time()
 
     total_time = time_end - time_start
-    distance = (total_time / 2) * 1125.33 # Calculated in ft/s
+    distance = (total_time / 2) * 1125.33  # Calculated in ft/s
 
     return distance
 
+
 def setup_gpio_pins():
+    global left_motor_pwm, right_motor_pwm
     gpio_pins_setup = False
-    GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BCM)
     # Stop Button
     GPIO.setup(stop_button_input_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     # GPS
-    setup_GPS()
-    # Magnometer
-
     # Sonar
-    GPIO.setup(sonar_echo_pin,GPIO.IN)
-    GPIO.setup(sonar_trig_pin,GPIO.OUT)
-    GPIO.output(sonar_trig_pin,False)
-    # Drive Motor
-    GPIO.setup(left_motor_direction_pin,GPIO.OUT)
-    GPIO.output(left_motor_direction_pin,False)
-    GPIO.setup(right_motor_direction_pin,GPIO.OUT)
-    GPIO.output(right_motor_direction_pin, False)
-    GPIO.setup(left_motor_pwm_speed_pin, GPIO.OUT)
-    left_motor_pwm = GPIO.PWM(left_motor_pwm_speed_pin, 0)
-    left_motor_pwm.start(50)  # duty cycle in percentage
+    GPIO.setup(sonar_echo_pin, GPIO.IN)
+    GPIO.setup(sonar_trig_pin, GPIO.OUT)
+    GPIO.output(sonar_trig_pin, False)
+    # Drive Motor Direction
+    GPIO.setup(left_motor_direction_pin, GPIO.OUT)
+    GPIO.output(left_motor_direction_pin, False)
+
     GPIO.setup(right_motor_direction_pin, GPIO.OUT)
-    right_motor_pwm = GPIO.PWM(right_motor_speed_pin, 0)
-    right_motor_pwm.start(50)  # duty cycle in percentage
+    GPIO.output(right_motor_direction_pin, False)
+    # Driver motor PWM
+    GPIO.setup(left_motor_pwm_speed_pin, GPIO.OUT)
+    left_motor_pwm = GPIO.PWM(left_motor_pwm_speed_pin, 1)
+
+    GPIO.setup(right_motor_pwm_speed_pin, GPIO.OUT)
+    right_motor_pwm = GPIO.PWM(right_motor_pwm_speed_pin, 1)
     time.sleep(1)
     return gpio_pins_setup
+
 
 def setup_GPS():
     gpsd.connect()
@@ -162,14 +159,17 @@ def setup_GPS():
             return False
         packet = gpsd.get_current()
         logging.warning("GPS still does not have a fix.")
-        counter+=1
+        counter += 1
         time.sleep(.2)
     logging.debug("GPS has fix.")
     return True
 
+
 def setupLogging():
-    logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',filename="drone.log",level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
+                        filename="drone.log", level=logging.DEBUG)
     return
+
 
 def check_stop_button():
     button_pressed = False
@@ -177,40 +177,68 @@ def check_stop_button():
         button_pressed = True
     return button_pressed
 
-def setMotorSpeed(isLeft, perc):
+
+def setMotorSpeed(isLeft, hz):
     if (isLeft):
-        left_motor_pwm.ChangeFrequency(perc)
+        left_motor_pwm.ChangeFrequency(hz)
     else:
-        right_motor_pwm.ChangeFrequency(perc)
+        right_motor_pwm.ChangeFrequency(hz)
 
     return
 
+
 def setMotorDirection(isLeft, forw):
     if (isLeft):
-        GPIO.output(left_motor_direction_pin,forw)
+        GPIO.output(left_motor_direction_pin, forw)
     else:
-        GPIO.output(right_motor_direction_pin,forw)
+        GPIO.output(right_motor_direction_pin, forw)
 
 
-print("Wrote File: " + str(write_json_file(moving_Left, moving_Right, moving_Forward, moving_Backward, current_Latitude,
-                                           current_Longitude, current_Direction_Degrees, current_Distance_Ahead,
-                                           stop_Everything, json_Filename)) + ".")
-print("Read File as: " + str(read_json_file(json_Filename)) + ".")
-print("What None prints as in JSON: " + str(json.dumps({"a": None})))
-
-# while True:
-#
-#     if (stop_Everything):
-#         break
-#
-#     time.sleep((loop_Delay) / 1000)
-#     break
-#GPIO.cleanup()
-
-setupLogging()
 setup_gpio_pins()
-setup_GPS()
-current_Distance_Ahead = get_distance_ahead()
-print("Distance: " + str(current_Distance_Ahead) + "ft")
-get_position_and_direction()
+setupLogging()
+setMotorDirection(True, True)
+setMotorDirection(False, True)
+isStopped = True
+isForward = True
+left_motor_pwm.stop()
+right_motor_pwm.stop()
+
+while True:
+
+    driver_motor_hz = int(input("Enter Hz to driver motor, '-2' to reverse direction, or '-1' to quit: "))
+    if driver_motor_hz is -1:
+        break
+    elif driver_motor_hz is 0:
+        left_motor_pwm.stop()
+        right_motor_pwm.stop()
+        isStopped = True
+    elif driver_motor_hz is -2:
+        if isForward:
+            setMotorDirection(True, False)
+            setMotorDirection(False, False)
+            isForward = False
+            print("MOTORS GOING FORWARD")
+        else:
+            setMotorDirection(True, True)
+            setMotorDirection(False, True)
+            isForward = True
+            print("MOTORS GOING BACKWARD")
+    elif driver_motor_hz < 0 or driver_motor_hz > 20000:
+        print("The Hz (entered: " + str(driver_motor_hz) + ") must be a number between 0-20000!")
+    else:
+        if isStopped:
+            left_motor_pwm.start(50)
+            right_motor_pwm.start(50)
+            print("STARTED MOTORS!")
+            isStopped = False
+        setMotorSpeed(True, driver_motor_hz)
+        setMotorSpeed(False, driver_motor_hz)
+        print("driver motor at " + str(driver_motor_hz) + "Hz.")
+
+    time.sleep(loop_Delay / 1000)
+
+if left_motor_pwm is not None:
+    left_motor_pwm.stop()
+if right_motor_pwm is not None:
+    right_motor_pwm.stop()
 GPIO.cleanup()
