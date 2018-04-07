@@ -1,11 +1,11 @@
 import logging, json, time
 import watchdog
+import gpsd
 
 # import RPi.GPIO as GPIO # For the pi
-from RPi import GPIO # For editing
-GPIO.VERBOSE = False # For editing
+from RPi import GPIO  # For editing
 
-import gpsd
+GPIO.VERBOSE = False  # For editing
 
 # Action Variables
 moving_Left = False
@@ -24,15 +24,15 @@ left_motor_direction_pin = 15
 right_motor_direction_pin = 16
 left_motor_pwm_speed_pin = 11
 right_motor_speed_pin = 12
-#gps_rx_pin = 8
-#gps_tx_pin = 10
+# gps_rx_pin = 8
+# gps_tx_pin = 10
 sonar_trig_pin = 18
 sonar_echo_pin = 22
 stop_button_input_pin = 19
 
 # File Variables
 program_Changed_File = False
-json_Filename = "land_drone_JSON_file.JSON"
+json_Filename = "land_drone.JSON"
 
 # Misc Variables
 gateway = None
@@ -79,6 +79,7 @@ def read_json_file(json_filename):
         data = json.load(file)
     return data
 
+
 def set_variables_from_json_data(json_data):
     global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
     moving_Forward = bool(json_data["moving_forward"])
@@ -87,38 +88,41 @@ def set_variables_from_json_data(json_data):
     moving_Left = bool(json_data["moving_left"])
     return
 
+
 def get_position_and_direction():
     got_current_position = False
     got_direction = False
     global current_Latitude, current_Longitude, current_Direction_Degrees
     gps_packet = gpsd.get_current()
-    if (gps_packet.mode > 1):
-        current_Longitude=gps_packet.lon
-        current_Latitude=gps_packet.lat
-        got_current_position=True
-    return (got_current_position and got_direction)
+    if gps_packet.mode > 1:
+        current_Longitude = gps_packet.lon
+        current_Latitude = gps_packet.lat
+        got_current_position = True
+    return got_current_position and got_direction
+
 
 def get_distance_ahead():
     time_start = 0
     time_end = 0
     distance = None
 
-    GPIO.output(sonar_trig_pin,False)
+    GPIO.output(sonar_trig_pin, False)
     time.sleep(.05)
 
-    GPIO.output(sonar_trig_pin,True)
+    GPIO.output(sonar_trig_pin, True)
     time.sleep(.000001)
-    GPIO.output(sonar_trig_pin,False)
+    GPIO.output(sonar_trig_pin, False)
 
-    while (GPIO.input(sonar_echo_pin) == 0):
+    while GPIO.input(sonar_echo_pin) == 0:
         time_start = time.time()
-    while (GPIO.input(sonar_echo_pin) == 1):
+    while GPIO.input(sonar_echo_pin) == 1:
         time_end = time.time()
 
     total_time = time_end - time_start
-    distance = (total_time / 2) * 1125.33 # Calculated in ft/s
+    distance = (total_time / 2) * 1125.33  # Calculated in ft/s
 
     return distance
+
 
 def setup_gpio_pins():
     gpio_pins_setup = False
@@ -126,50 +130,52 @@ def setup_gpio_pins():
     # Stop Button
     GPIO.setup(stop_button_input_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     # GPS
-    setup_GPS()
-    # Magnometer
-    gw = LinuxDevice(1)
-    sensor = HMC5883L(gateway)
-    sensor.config(averaging=4, datarate=15)
-    sensor.set_resolution(1090)
+    setup_gps()
+    # IMU
+
     # Sonar
-    GPIO.setup(sonar_echo_pin,GPIO.IN)
-    GPIO.setup(sonar_trig_pin,GPIO.OUT)
-    GPIO.output(sonar_trig_pin,False)
+    GPIO.setup(sonar_echo_pin, GPIO.IN)
+    GPIO.setup(sonar_trig_pin, GPIO.OUT)
+    GPIO.output(sonar_trig_pin, False)
     # Drive Motor
-    GPIO.setup(left_motor_direction_pin,GPIO.OUT)
-    GPIO.output(left_motor_direction_pin,False)
-    GPIO.setup(right_motor_direction_pin,GPIO.OUT)
+    GPIO.setup(left_motor_direction_pin, GPIO.OUT)
+    GPIO.output(left_motor_direction_pin, False)
+    GPIO.setup(right_motor_direction_pin, GPIO.OUT)
     GPIO.output(right_motor_direction_pin, False)
     time.sleep(1)
     return gpio_pins_setup
 
-def setup_GPS():
+
+def setup_gps():
     gpsd.connect()
     packet = gpsd.get_current()
-    if (packet.mode < 2):
+    if packet.mode < 2:
         logging.warning("GPS does not have a fix!")
     counter = 0
-    while (packet.mode < 2):
-        if (counter > (150)):
+    while packet.mode < 2:
+        if counter > 150:
             logging.error("GPS cannot get a fix!")
             return False
         packet = gpsd.get_current()
         logging.warning("GPS still does not have a fix.")
-        counter+=1
+        counter += 1
         time.sleep(.2)
     logging.debug("GPS has fix.")
     return True
 
+
 def setupLogging():
-    logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',filename="drone.log",level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
+                        filename="drone.log", level=logging.DEBUG)
     return
+
 
 def check_stop_button():
     button_pressed = False
-    if (not (GPIO.input(stop_button_input_pin))):
+    if not (GPIO.input(stop_button_input_pin)):
         button_pressed = True
     return button_pressed
+
 
 print("Wrote File: " + str(write_json_file(moving_Left, moving_Right, moving_Forward, moving_Backward, current_Latitude,
                                            current_Longitude, current_Direction_Degrees, current_Distance_Ahead,
@@ -184,7 +190,7 @@ print("What None prints as in JSON: " + str(json.dumps({"a": None})))
 #
 #     time.sleep((loop_Delay) / 1000)
 #     break
-#GPIO.cleanup()
+# GPIO.cleanup()
 
 setupLogging()
 setup_gpio_pins()
