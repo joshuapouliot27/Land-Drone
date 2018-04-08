@@ -360,6 +360,7 @@ while True:
     break
 
 time.sleep(5)
+print("switching direction")
 set_motor_direction(True,False)
 set_motor_direction(False,False)
 time.sleep(5)
