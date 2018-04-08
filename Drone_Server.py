@@ -314,7 +314,7 @@ event_handler = JSON_File_Handler(set_variables_from_json_data, json_Filename)
 observer = Observer()
 observer.schedule(event_handler, path='./')
 observer.start()
-moving_Left = True
+moving_Forward = True
 
 while True:
 
