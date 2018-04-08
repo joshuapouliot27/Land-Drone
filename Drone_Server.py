@@ -288,6 +288,7 @@ def check_constant_speed():
     ACCz = accel_data.z
     accXnorm = ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
     accYnorm = ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
+    print("Current normalized acc: x:"+str(accXnorm)+"\t y: "+str(accYnorm))
     if math.fabs(accXnorm) < accel_threshold and math.fabs(accYnorm) < accel_threshold:
         return True
     else:
