@@ -9,7 +9,7 @@ total_nums = 0
 LSM6DS33 = LSM6DS33()
 
 seconds = 10
-loop_delay = 100  # in Hz
+loop_delay = 50  # in Hz
 
 
 def calc_norm_accel():
