@@ -360,6 +360,9 @@ while True:
     break
 
 time.sleep(5)
+set_motor_direction(True,False)
+set_motor_direction(False,False)
+time.sleep(5)
 left_motor_pwm.stop()
 right_motor_pwm.stop()
 observer.stop()
