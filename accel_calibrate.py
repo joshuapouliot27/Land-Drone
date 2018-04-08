@@ -23,7 +23,7 @@ def calc_norm_accel():
 
 time_start = time.time()
 
-for x in range(0, int(seconds / loop_delay)):
+for x in range(0, math.trunc(seconds / (1/loop_delay))):
     calc_norm_accel()
     accXnorms += accXnorm
     accYnorms += accYnorm
