@@ -352,6 +352,9 @@ while True:
     time.sleep(loop_Delay / 1000)
     break
 
+time.sleep(5)
+left_motor_pwm.stop()
+right_motor_pwm.stop()
 observer.stop()
 observer.join()
 GPIO.cleanup()
