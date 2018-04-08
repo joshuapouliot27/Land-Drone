@@ -35,7 +35,7 @@ is_Moving = False
 left_motor_direction_pin = 15
 right_motor_direction_pin = 16
 left_motor_pwm_speed_pin = 11
-right_motor_speed_pin = 12
+right_motor_pwm_speed_pin = 12
 # gps_rx_pin = 8
 # gps_tx_pin = 10
 sonar_trig_pin = 18
@@ -175,7 +175,9 @@ def setup_gpio_pins():
     GPIO.setup(right_motor_direction_pin, GPIO.OUT)
     GPIO.output(right_motor_direction_pin, False)
     GPIO.setup(left_motor_pwm_speed_pin, GPIO.OUT)
+    left_motor_pwm = GPIO.PWM(left_motor_pwm_speed_pin, 1)
     GPIO.setup(right_motor_direction_pin, GPIO.OUT)
+    right_motor_pwm = GPIO.PWM(right_motor_pwm_speed_pin, 1)
     time.sleep(1)
     return gpio_pins_setup
 
@@ -333,8 +335,8 @@ while True:
             setMotorSpeed(False, 0)
             is_Moving = False
         set_proper_direction()
-        #while not check_constant_speed():
-            #time.sleep(loop_Delay / 1000)
+        while not check_constant_speed():
+            time.sleep(loop_Delay / 1000)
         setMotorSpeed(True, 1)
         setMotorSpeed(False, 1)
         is_Moving = True
