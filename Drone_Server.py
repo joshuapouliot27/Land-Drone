@@ -318,7 +318,7 @@ while True:
         is_Moving = False
 
     # Distance Sensor
-    if get_distance_ahead() <= 7:
+    if get_distance_ahead() <= 7 and is_Moving:
         setMotorSpeed(True, 0)
         setMotorSpeed(False, 0)
         is_Moving = False
