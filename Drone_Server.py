@@ -62,12 +62,11 @@ class JSON_File_Handler(FileSystemEventHandler):
     def __init__(self, function, filename):
         self.filename = filename
         self.function = function
-        super(self)
+        super()
 
     def on_modified(self, event: FileModifiedEvent):
         if self.filename in event.src_path:
             self.function()
-        super(self, event)
 
 
 def construct_json_dictionary(moving_left, moving_right, moving_forward, moving_backword, current_latitude,
