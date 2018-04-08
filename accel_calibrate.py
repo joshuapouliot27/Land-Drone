@@ -13,6 +13,7 @@ loop_delay = 10  # in Hz
 
 
 def calc_norm_accel():
+    global accXnorm, accYnorm
     accel_data = accel.get_accelerometer_data()
     ACCx = accel_data.x
     ACCy = accel_data.y
