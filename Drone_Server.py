@@ -305,7 +305,7 @@ set_motor_direction(True, True)
 set_motor_direction(True, True)
 heading_calculator = Heading_Calculator(LSM6DS33, LIS3MDL)
 dir_Forward = True
-event_handler = JSON_File_Handler(set_variables_from_json_data(), json_Filename)
+event_handler = JSON_File_Handler(set_variables_from_json_data, json_Filename)
 observer = Observer()
 observer.schedule(event_handler, path='./')
 observer.start()
