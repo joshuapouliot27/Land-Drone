@@ -359,10 +359,12 @@ while True:
     time.sleep(loop_Delay / 1000)
     break
 
+GPIO.output(right_motor_direction_pin, True)
 time.sleep(5)
 print("switching direction")
 set_motor_direction(True,False)
 set_motor_direction(False,False)
+GPIO.output(right_motor_direction_pin, False)
 time.sleep(5)
 left_motor_pwm.stop()
 right_motor_pwm.stop()
