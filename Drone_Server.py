@@ -366,7 +366,7 @@ while True:
 time.sleep(5)
 left_motor_pwm.ChangeFrequency(20000)
 right_motor_pwm.ChangeFrequency(20000)
-time.sleep(1)
+time.sleep(2.5)
 left_motor_pwm.stop()
 right_motor_pwm.stop()
 observer.stop()
