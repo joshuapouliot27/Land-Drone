@@ -174,11 +174,7 @@ def setup_gpio_pins():
     GPIO.setup(right_motor_direction_pin, GPIO.OUT)
     GPIO.output(right_motor_direction_pin, False)
     GPIO.setup(left_motor_pwm_speed_pin, GPIO.OUT)
-    left_motor_pwm = GPIO.PWM(left_motor_pwm_speed_pin, 0)
-    left_motor_pwm.start(50)  # duty cycle in percentage
     GPIO.setup(right_motor_direction_pin, GPIO.OUT)
-    right_motor_pwm = GPIO.PWM(right_motor_speed_pin, 0)
-    right_motor_pwm.start(50)  # duty cycle in percentage
     time.sleep(1)
     return gpio_pins_setup
 
@@ -219,7 +215,7 @@ def setMotorSpeed(isLeft, perc):
         if perc is 0:
             left_motor_pwm.stop()
         elif perc > 0 and not is_Moving:
-            left_motor_pwm.start()
+            left_motor_pwm.start(50)
         if dir_Left or dir_Right:
             left_motor_pwm.ChangeFrequency(perc * max_pwm)
         else:
@@ -228,7 +224,7 @@ def setMotorSpeed(isLeft, perc):
         if perc is 0:
             right_motor_pwm.stop()
         elif perc > 0 and not is_Moving:
-            right_motor_pwm.start()
+            right_motor_pwm.start(50)
         if dir_Left or dir_Right:
             left_motor_pwm.ChangeFrequency(perc * max_pwm)
         else:
