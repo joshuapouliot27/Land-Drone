@@ -335,8 +335,8 @@ while True:
             setMotorSpeed(False, 0)
             is_Moving = False
         set_proper_direction()
-        while not check_constant_speed():
-            time.sleep(loop_Delay / 1000)
+        #while not check_constant_speed():
+            #time.sleep(loop_Delay / 1000)
         setMotorSpeed(True, 1)
         setMotorSpeed(False, 1)
         is_Moving = True
