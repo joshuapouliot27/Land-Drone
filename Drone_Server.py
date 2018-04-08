@@ -223,8 +223,10 @@ def setMotorSpeed(isLeft, perc):
             left_motor_pwm.start(50)
         if dir_Left or dir_Right:
             left_motor_pwm.ChangeFrequency(perc * max_pwm)
+            print("PWM: " + str(max_pwm * perc))
         else:
             left_motor_pwm.ChangeFrequency(perc * max_turn_pwm)
+            print("PWM: " + str(max_turn_pwm * perc))
     else:
         if perc is 0:
             right_motor_pwm.stop()
@@ -232,8 +234,10 @@ def setMotorSpeed(isLeft, perc):
             right_motor_pwm.start(50)
         if dir_Left or dir_Right:
             left_motor_pwm.ChangeFrequency(perc * max_pwm)
+            print("PWM: "+str(max_pwm*perc))
         else:
             left_motor_pwm.ChangeFrequency(perc * max_turn_pwm)
+            print("PWM: " + str(max_turn_pwm * perc))
 
 
 def set_motor_direction(isLeft, forw):
