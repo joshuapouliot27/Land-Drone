@@ -221,7 +221,7 @@ def setMotorSpeed(isLeft, perc):
             left_motor_pwm.stop()
         elif perc > 0 and not is_Moving:
             left_motor_pwm.start(50)
-        if dir_Left or dir_Right:
+        if not dir_Left or not dir_Right:
             left_motor_pwm.ChangeFrequency(perc * max_pwm)
             print("PWM: " + str(max_pwm * perc))
         else:
@@ -232,7 +232,7 @@ def setMotorSpeed(isLeft, perc):
             right_motor_pwm.stop()
         elif perc > 0 and not is_Moving:
             right_motor_pwm.start(50)
-        if dir_Left or dir_Right:
+        if not dir_Left or not dir_Right:
             left_motor_pwm.ChangeFrequency(perc * max_pwm)
             print("PWM: "+str(max_pwm*perc))
         else:
