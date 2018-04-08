@@ -6,14 +6,14 @@ accYnorm = 0
 accXnorms = 0
 accYnorms = 0
 total_nums = 0
-LSM6DS33 = LSM6DS33()
+accel = LSM6DS33()
 
 seconds = 10
-loop_delay = 1  # in Hz
+loop_delay = 10  # in Hz
 
 
 def calc_norm_accel():
-    accel_data = LSM6DS33.get_accelerometer_data()
+    accel_data = accel.get_accelerometer_data()
     ACCx = accel_data.x
     ACCy = accel_data.y
     ACCz = accel_data.z
@@ -23,11 +23,14 @@ def calc_norm_accel():
 
 time_start = time.time()
 
-for x in range(0, int(seconds / loop_delay)):
+for x in range(0, math.trunc(seconds / (1/loop_delay))):
+    time_s = time.time()
     calc_norm_accel()
     accXnorms += accXnorm
     accYnorms += accYnorm
     total_nums += 1
+    print("x: {:10} y: {:10}".format(accXnorm,accYnorm))
+    time.sleep((1/loop_delay)-(time.time()-time_s))
 
 seconds_took = time.time() - time_start
 
