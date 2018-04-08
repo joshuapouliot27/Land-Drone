@@ -301,8 +301,6 @@ setupLogging()
 setup_gpio_pins()
 setup_gps()
 get_position_and_direction()
-setMotorSpeed(True, 0)
-setMotorSpeed(False, 0)
 set_motor_direction(True, True)
 set_motor_direction(True, True)
 heading_calculator = Heading_Calculator(LSM6DS33, LIS3MDL)
@@ -339,7 +337,8 @@ while True:
         is_Moving = True
 
     # If distance is fine and remote button isn't pressed and not moving, then start moving
-    if get_distance_ahead() > 7 and not is_Moving and not stop_Everything:
+    if get_distance_ahead() > 7 and not is_Moving and not stop_Everything \
+            and (moving_Right or moving_Left or moving_Forward or moving_Backward):
         setMotorSpeed(True, 1)
         setMotorSpeed(False, 1)
         is_Moving = True
