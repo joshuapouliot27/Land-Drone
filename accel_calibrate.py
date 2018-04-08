@@ -30,7 +30,7 @@ for x in range(0, math.trunc(seconds / (1/loop_delay))):
     accXnorms += accXnorm
     accYnorms += accYnorm
     total_nums += 1
-    print("x: {:10} y: {:10}".format(accXnorm,accYnorm))
+    #print("x: {:10} y: {:10}".format(accXnorm,accYnorm))
     time.sleep((1/loop_delay)-(time.time()-time_s))
 
 seconds_took = time.time() - time_start
