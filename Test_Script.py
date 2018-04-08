@@ -191,7 +191,7 @@ def setMotorDirection(isLeft, forw):
     if (isLeft):
         GPIO.output(left_motor_direction_pin, forw)
     else:
-        GPIO.output(right_motor_direction_pin, forw)
+        GPIO.output(right_motor_direction_pin, not forw)
 
 
 setup_gpio_pins()
