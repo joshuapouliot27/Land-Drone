@@ -1,12 +1,18 @@
 import logging, json, time
-import watchdog
-import gpsd
+
+import math, watchdog, gpsd
+
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler, FileModifiedEvent
+
+from Heading_Calculator import Heading_Calculator
+from LIS3MDL import LIS3MDL
+from LSM6DS33 import LSM6DS33
 
 # import RPi.GPIO as GPIO # For the pi
-from RPi import GPIO # For editing
-GPIO.VERBOSE = False # For editing
+from RPi import GPIO  # For editing
 
-import gpsd
+GPIO.VERBOSE = False  # For editing
 
 # Action Variables
 moving_Left = False
@@ -19,6 +25,11 @@ current_Latitude = None
 current_Longitude = None
 current_Direction_Degrees = None
 current_Distance_Ahead = None
+dir_Left = False
+dir_Right = False
+dir_Forward = False
+dir_Backward = False
+is_Moving = False
 
 # Pin Number Variables
 left_motor_direction_pin = 15
@@ -31,7 +42,7 @@ sonar_trig_pin = 18
 sonar_echo_pin = 22
 stop_button_input_pin = 19
 
-#GPIO variables
+# GPIO variables
 left_motor_pwm = None
 right_motor_pwm = None
 
@@ -41,8 +52,22 @@ json_Filename = "land_drone.JSON"
 
 # Misc Variables
 max_pwm = 20000
+max_turn_pwm = 8000
+accel_threshold = 0.01
 stop_Everything = False
 loop_Delay = 1  # How much time in milliseconds to wait after every loop
+
+
+class JSON_File_Handler(FileSystemEventHandler):
+    def __init__(self, function, filename):
+        self.filename = filename
+        self.function = function
+        super(self)
+
+    def on_modified(self, event: FileModifiedEvent):
+        if self.filename in event.src_path:
+            self.function()
+        super(self, event)
 
 
 def construct_json_dictionary(moving_left, moving_right, moving_forward, moving_backword, current_latitude,
@@ -84,12 +109,14 @@ def read_json_file(json_filename):
     return data
 
 
-def set_variables_from_json_data(json_data):
+def set_variables_from_json_data():
+    json_data = read_json_file()
     global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
     moving_Forward = bool(json_data["moving_forward"])
     moving_Backward = bool(json_data["moving_backward"])
     moving_Right = bool(json_data["moving_right"])
     moving_Left = bool(json_data["moving_left"])
+    stop_Everything = bool(json_data["stop_everything"])
     return
 
 
@@ -102,7 +129,7 @@ def get_position_and_direction():
         current_Longitude = gps_packet.lon
         current_Latitude = gps_packet.lat
         got_current_position = True
-    return got_current_position and got_direction
+    return got_current_position
 
 
 def get_distance_ahead():
@@ -186,40 +213,144 @@ def check_stop_button():
         button_pressed = True
     return button_pressed
 
+
 def setMotorSpeed(isLeft, perc):
-    if (isLeft):
-        left_motor_pwm.ChangeFrequency(perc)
+    if isLeft:
+        if dir_Left or dir_Right:
+            left_motor_pwm.ChangeFrequency(perc * max_pwm)
+        else:
+            left_motor_pwm.ChangeFrequency(perc * max_turn_pwm)
     else:
-        right_motor_pwm.ChangeFrequency(perc)
+        if dir_Left or dir_Right:
+            left_motor_pwm.ChangeFrequency(perc * max_pwm)
+        else:
+            left_motor_pwm.ChangeFrequency(perc * max_turn_pwm)
 
     return
 
-def setMotorDirection(isLeft, forw):
-    if (isLeft):
-        GPIO.output(left_motor_direction_pin,forw)
+
+def set_motor_direction(isLeft, forw):
+    if isLeft:
+        GPIO.output(left_motor_direction_pin, forw)
     else:
-        GPIO.output(right_motor_direction_pin,forw)
+        GPIO.output(right_motor_direction_pin, forw)
 
 
-print("Wrote File: " + str(write_json_file(moving_Left, moving_Right, moving_Forward, moving_Backward, current_Latitude,
-                                           current_Longitude, current_Direction_Degrees, current_Distance_Ahead,
-                                           stop_Everything, json_Filename)) + ".")
-print("Read File as: " + str(read_json_file(json_Filename)) + ".")
-print("What None prints as in JSON: " + str(json.dumps({"a": None})))
+def set_proper_direction():
+    global dir_Left, dir_Backward, dir_Forward, dir_Right
+    if moving_Forward and not dir_Forward:
+        set_motor_direction(True, True)
+        set_motor_direction(False, True)
+        dir_Forward = True
+        dir_Left = False
+        dir_Right = False
+        dir_Backward = False
+    if moving_Left and not dir_Left:
+        set_motor_direction(True, False)
+        set_motor_direction(False, True)
+        dir_Left = True
+        dir_Forward = False
+        dir_Right = False
+        dir_Backward = False
+    if moving_Right and not dir_Right:
+        set_motor_direction(True, True)
+        set_motor_direction(False, False)
+        dir_Right = True
+        dir_Left = False
+        dir_Forward = False
+        dir_Backward = False
+    if moving_Backward and not dir_Backward:
+        set_motor_direction(True, False)
+        set_motor_direction(False, False)
+        dir_Backward = True
+        dir_Left = False
+        dir_Right = False
+        dir_Forward = False
 
-# while True:
-#
-#     if (stop_Everything):
-#         break
-#
-#     time.sleep((loop_Delay) / 1000)
-#     break
-# GPIO.cleanup()
 
+def is_proper_direction():
+    if moving_Forward and not dir_Forward:
+        return False
+    if moving_Left and not dir_Left:
+        return False
+    if moving_Right and not dir_Right:
+        return False
+    if moving_Backward and not dir_Backward:
+        return False
+    return True
+
+
+def check_constant_speed():
+    accel_data = LSM6DS33.get_accelerometer_data()
+    ACCx = accel_data.x
+    ACCy = accel_data.y
+    ACCz = accel_data.z
+    accXnorm = ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
+    accYnorm = ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
+    if math.fabs(accXnorm) < accel_threshold and math.fabs(accYnorm) < accel_threshold:
+        return True
+    else:
+        return False
+
+
+LIS3MDL = LIS3MDL()
+LSM6DS33 = LSM6DS33()
 setupLogging()
 setup_gpio_pins()
-setup_GPS()
-current_Distance_Ahead = get_distance_ahead()
-print("Distance: " + str(current_Distance_Ahead) + "ft")
+setup_gps()
 get_position_and_direction()
+setMotorSpeed(True, 0)
+setMotorSpeed(False, 0)
+set_motor_direction(True, True)
+set_motor_direction(True, True)
+heading_calculator = Heading_Calculator(LSM6DS33, LIS3MDL)
+dir_Forward = True
+event_handler = JSON_File_Handler(set_variables_from_json_data(), json_Filename)
+observer = Observer()
+observer.schedule(event_handler, path='./')
+observer.start()
+
+while True:
+
+    # Remote Stop Button
+    if stop_Everything and is_Moving:
+        setMotorSpeed(True, 0)
+        setMotorSpeed(False, 0)
+        is_Moving = False
+
+    # Distance Sensor
+    if get_distance_ahead() <= 7:
+        setMotorSpeed(True, 0)
+        setMotorSpeed(False, 0)
+        is_Moving = False
+
+    # if direction isn't proper, then stop moving change direction and start moving
+    if not is_proper_direction():
+        setMotorSpeed(True, 0)
+        setMotorSpeed(False, 0)
+        is_Moving = False
+        set_proper_direction()
+        while not check_constant_speed():
+            time.sleep(loop_Delay / 1000)
+        setMotorSpeed(True, 1)
+        setMotorSpeed(False, 1)
+        is_Moving = True
+
+    # If distance is fine and remote button isn't pressed and not moving, then start moving
+    if get_distance_ahead() > 7 and not is_Moving and not stop_Everything:
+        setMotorSpeed(True, 1)
+        setMotorSpeed(False, 1)
+        is_Moving = True
+
+    # if not supposed to be moving, but is moving then stop moving
+    if not moving_Backward and not moving_Forward and not moving_Left and not moving_Right and is_Moving:
+        setMotorSpeed(True, 0)
+        setMotorSpeed(False, 0)
+        is_Moving = False
+
+    time.sleep(loop_Delay / 1000)
+    break
+
+observer.stop()
+observer.join()
 GPIO.cleanup()
