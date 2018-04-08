@@ -216,17 +216,23 @@ def check_stop_button():
 
 def setMotorSpeed(isLeft, perc):
     if isLeft:
+        if perc is 0:
+            left_motor_pwm.stop()
+        elif perc > 0 and not is_Moving:
+            left_motor_pwm.start()
         if dir_Left or dir_Right:
             left_motor_pwm.ChangeFrequency(perc * max_pwm)
         else:
             left_motor_pwm.ChangeFrequency(perc * max_turn_pwm)
     else:
+        if perc is 0:
+            right_motor_pwm.stop()
+        elif perc > 0 and not is_Moving:
+            right_motor_pwm.start()
         if dir_Left or dir_Right:
             left_motor_pwm.ChangeFrequency(perc * max_pwm)
         else:
             left_motor_pwm.ChangeFrequency(perc * max_turn_pwm)
-
-    return
 
 
 def set_motor_direction(isLeft, forw):

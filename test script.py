@@ -180,9 +180,16 @@ def check_stop_button():
 
 def setMotorSpeed(isLeft, hz):
     if (isLeft):
-        left_motor_pwm.ChangeFrequency(hz)
+        if hz is 0:
+            left_motor_pwm.stop()
+        else:
+            left_motor_pwm.ChangeFrequency(hz)
     else:
-        right_motor_pwm.ChangeFrequency(hz)
+        if hz is 0:
+            right_motor_pwm.stop()
+        else:
+            if not
+            right_motor_pwm.ChangeFrequency(hz)
 
     return
 

@@ -11,7 +11,6 @@
 
 import sys, signal, os
 import time
-import math
 
 from LIS3MDL import LIS3MDL
 import datetime
