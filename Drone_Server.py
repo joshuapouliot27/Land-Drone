@@ -326,9 +326,10 @@ while True:
 
     # if direction isn't proper, then stop moving change direction and start moving
     if not is_proper_direction():
-        setMotorSpeed(True, 0)
-        setMotorSpeed(False, 0)
-        is_Moving = False
+        if is_Moving:
+            setMotorSpeed(True, 0)
+            setMotorSpeed(False, 0)
+            is_Moving = False
         set_proper_direction()
         while not check_constant_speed():
             time.sleep(loop_Delay / 1000)
