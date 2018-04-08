@@ -157,6 +157,7 @@ def get_distance_ahead():
 
 
 def setup_gpio_pins():
+    global left_motor_pwm, right_motor_pwm
     gpio_pins_setup = False
     GPIO.setmode(GPIO.BOARD)
     # Stop Button
@@ -176,6 +177,7 @@ def setup_gpio_pins():
     GPIO.output(right_motor_direction_pin, False)
     GPIO.setup(left_motor_pwm_speed_pin, GPIO.OUT)
     left_motor_pwm = GPIO.PWM(left_motor_pwm_speed_pin, 1)
+
     GPIO.setup(right_motor_pwm_speed_pin, GPIO.OUT)
     right_motor_pwm = GPIO.PWM(right_motor_pwm_speed_pin, 1)
     time.sleep(1)
