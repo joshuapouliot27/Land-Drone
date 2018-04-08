@@ -110,7 +110,7 @@ def read_json_file(json_filename):
 
 
 def set_variables_from_json_data():
-    json_data = read_json_file()
+    json_data = read_json_file(json_Filename)
     global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
     moving_Forward = bool(json_data["moving_forward"])
     moving_Backward = bool(json_data["moving_backward"])
