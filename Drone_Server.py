@@ -308,6 +308,7 @@ event_handler = JSON_File_Handler(set_variables_from_json_data, json_Filename)
 observer = Observer()
 observer.schedule(event_handler, path='./')
 observer.start()
+moving_Left = True
 
 while True:
 
@@ -318,7 +319,7 @@ while True:
         is_Moving = False
 
     # Distance Sensor
-    if get_distance_ahead() <= 7 and is_Moving:
+    if get_distance_ahead() <= 4 and is_Moving:
         setMotorSpeed(True, 0)
         setMotorSpeed(False, 0)
         is_Moving = False
@@ -336,7 +337,7 @@ while True:
         is_Moving = True
 
     # If distance is fine and remote button isn't pressed and not moving, then start moving
-    if get_distance_ahead() > 7 and not is_Moving and not stop_Everything \
+    if get_distance_ahead() > 4 and not is_Moving and not stop_Everything \
             and (moving_Right or moving_Left or moving_Forward or moving_Backward):
         setMotorSpeed(True, 1)
         setMotorSpeed(False, 1)
