@@ -56,6 +56,8 @@ max_turn_pwm = 8000
 accel_threshold = 0.01
 stop_Everything = False
 loop_Delay = 1  # How much time in milliseconds to wait after every loop
+accel_offset_x = -0.007706830092610056
+accel_offset_y = -0.9543302538970905
 
 
 class JSON_File_Handler(FileSystemEventHandler):
@@ -286,9 +288,8 @@ def check_constant_speed():
     ACCx = accel_data.x
     ACCy = accel_data.y
     ACCz = accel_data.z
-    accXnorm = ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
-    accYnorm = ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
-    print("Current normalized acc: x:"+str(accXnorm)+"\t y: "+str(accYnorm))
+    accXnorm = (ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)) + accel_offset_x
+    accYnorm = (ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)) + accel_offset_y
     if math.fabs(accXnorm) < accel_threshold and math.fabs(accYnorm) < accel_threshold:
         return True
     else:
