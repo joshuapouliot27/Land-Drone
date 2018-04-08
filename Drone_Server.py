@@ -364,8 +364,8 @@ while True:
     break
 
 time.sleep(5)
-setMotorSpeed(True, 1)
-setMotorSpeed(False, 1)
+left_motor_pwm.ChangeFrequency(20000)
+right_motor_pwm.ChangeFrequency(20000)
 time.sleep(1)
 left_motor_pwm.stop()
 right_motor_pwm.stop()
