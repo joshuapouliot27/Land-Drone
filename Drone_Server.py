@@ -53,7 +53,7 @@ json_Filename = "land_drone.JSON"
 # Misc Variables
 max_pwm = 20000
 max_turn_pwm = 8000
-accel_threshold = 0.01
+accel_threshold = 0.05
 stop_Everything = False
 loop_Delay = 1  # How much time in milliseconds to wait after every loop
 accel_offset_x = -0.007706830092610056
