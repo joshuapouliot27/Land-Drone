@@ -6,14 +6,14 @@ accYnorm = 0
 accXnorms = 0
 accYnorms = 0
 total_nums = 0
-LSM6DS33 = LSM6DS33()
+accel = LSM6DS33()
 
 seconds = 10
 loop_delay = 10  # in Hz
 
 
 def calc_norm_accel():
-    accel_data = LSM6DS33.get_accelerometer_data()
+    accel_data = accel.get_accelerometer_data()
     ACCx = accel_data.x
     ACCy = accel_data.y
     ACCz = accel_data.z
