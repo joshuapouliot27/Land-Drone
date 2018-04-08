@@ -364,7 +364,7 @@ print("switching direction")
 set_motor_direction(True,False)
 set_motor_direction(False,False)
 time.sleep(5)
-for x in range(0,20000):
+for x in range(1,20000):
     left_motor_pwm.ChangeFrequency(x)
     right_motor_pwm.ChangeFrequency(x)
     time.sleep(.01)
