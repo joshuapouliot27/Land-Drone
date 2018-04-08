@@ -282,7 +282,7 @@ def is_proper_direction():
 
 
 def check_constant_speed():
-    accel_data = LSM6DS33.get_accelerometer_data()
+    accel_data = accel_gyro.get_accelerometer_data()
     ACCx = accel_data.x
     ACCy = accel_data.y
     ACCz = accel_data.z
@@ -295,15 +295,15 @@ def check_constant_speed():
         return False
 
 
-LIS3MDL = LIS3MDL()
-LSM6DS33 = LSM6DS33()
+magnetometer = LIS3MDL()
+accel_gyro = LSM6DS33()
 setupLogging()
 setup_gpio_pins()
 setup_gps()
 get_position_and_direction()
 set_motor_direction(True, True)
 set_motor_direction(True, True)
-heading_calculator = Heading_Calculator(LSM6DS33, LIS3MDL)
+heading_calculator = Heading_Calculator(accel_gyro, magnetometer)
 dir_Forward = True
 event_handler = JSON_File_Handler(set_variables_from_json_data, json_Filename)
 observer = Observer()
