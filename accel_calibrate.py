@@ -24,11 +24,12 @@ def calc_norm_accel():
 time_start = time.time()
 
 for x in range(0, math.trunc(seconds / (1/loop_delay))):
+    time_s = time.time()
     calc_norm_accel()
     accXnorms += accXnorm
     accYnorms += accYnorm
     total_nums += 1
-    time.sleep(1/loop_delay)
+    time.sleep((1/loop_delay)-(time.time()-time_s))
 
 seconds_took = time.time() - time_start
 
