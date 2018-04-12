@@ -60,7 +60,6 @@ async def web_socket_message_input(websocket, path):
                                      current_Distance_Ahead, stop_Everything)
             await websocket.send(json_data)
         else:
-            print("returning data!")
             await set_variables_from_json_data(message)
 
 async def construct_json_dictionary(moving_left, moving_right, moving_forward, moving_backword, current_latitude,
