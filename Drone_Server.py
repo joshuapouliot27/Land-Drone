@@ -59,6 +59,7 @@ async def web_socket_message_input(websocket, path):
                                      current_Latitude, current_Longitude, current_Direction_Degrees,
                                      current_Distance_Ahead, stop_Everything)
             logging.info("Message recieved: "+str(message))
+            print("Message recieved: " + str(message))
             await websocket.send(json_data)
         else:
             await set_variables_from_json_data(message)
