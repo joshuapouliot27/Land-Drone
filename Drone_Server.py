@@ -305,7 +305,7 @@ async def check_constant_speed():
         return False
 
 
-async def only_positive_numbers(number: float):
+def only_positive_numbers(number: float):
     if number > 0:
         return number
     else:
@@ -318,68 +318,75 @@ async def get_true_heading():
 
 
 async def sonar_loop():
-    time_start = time.time()
-    global current_distance_ahead
-    current_distance_ahead = await get_sonar_distance()
-    await asyncio.sleep(await only_positive_numbers((1 / sonar_frequency) - (time.time() - time_start)))
+    while True:
+        time_start = time.time()
+        global current_distance_ahead
+        current_distance_ahead = await get_sonar_distance()
+        await asyncio.sleep(only_positive_numbers((1 / sonar_frequency) - (time.time() - time_start)))
 
 
 async def gps_loop():
-    time_start = time.time()
-    await get_position()
-    await asyncio.sleep(await only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
+    while True:
+        time_start = time.time()
+        await get_position()
+        await asyncio.sleep(only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
 
 
 async def imu_loop():
-    time_start = time.time()
-    await get_true_heading()
-    await asyncio.sleep(await only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
+    while True:
+        time_start = time.time()
+        await get_true_heading()
+        await asyncio.sleep(only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
 
 
 async def main_loop():
-    global is_moving
+    while True:
+        global is_moving
 
-    time_start = time.time()
+        time_start = time.time()
 
-    # Distance Sensor
-    if await get_sonar_distance() <= 4 and is_moving:
-        await set_motor_speed(True, 0)
-        await set_motor_speed(False, 0)
-        is_moving = False
-
-    # if direction isn't proper, then stop moving change direction and start moving
-    if not await is_proper_direction():
-        if is_moving:
+        # Distance Sensor
+        if await get_sonar_distance() <= 4 and is_moving:
             await set_motor_speed(True, 0)
             await set_motor_speed(False, 0)
             is_moving = False
-        await set_proper_direction()
-        # while not await check_constant_speed():
-        # time.sleep(loop_Delay / 1000)
-        await set_motor_speed(True, 1)
-        await set_motor_speed(False, 1)
-        is_moving = True
-    print("can move: " + str(await get_sonar_distance() > 4 and not is_moving \
-                                   and (moving_right or moving_left or moving_forward or moving_backward)))
-    # If distance is fine and remote button isn't pressed and not moving, then start moving
-    if await get_sonar_distance() > 4 and not is_moving \
-            and (moving_right or moving_left or moving_forward or moving_backward):
-        await set_motor_speed(True, 1)
-        await set_motor_speed(False, 1)
-        is_moving = True
 
-    # if not supposed to be moving, but is moving then stop moving
-    if not moving_backward and not moving_forward and not moving_left and not moving_right and is_moving:
-        await set_motor_speed(True, 0)
-        await set_motor_speed(False, 0)
-        is_moving = False
+        # if direction isn't proper, then stop moving change direction and start moving
+        if not await is_proper_direction():
+            if is_moving:
+                await set_motor_speed(True, 0)
+                await set_motor_speed(False, 0)
+                is_moving = False
+            await set_proper_direction()
+            # while not await check_constant_speed():
+            # time.sleep(loop_Delay / 1000)
+            await set_motor_speed(True, 1)
+            await set_motor_speed(False, 1)
+            is_moving = True
+        print("can move: " + str(await get_sonar_distance() > 4 and not is_moving \
+                                       and (moving_right or moving_left or moving_forward or moving_backward)))
+        # If distance is fine and remote button isn't pressed and not moving, then start moving
+        if await get_sonar_distance() > 4 and not is_moving \
+                and (moving_right or moving_left or moving_forward or moving_backward):
+            await set_motor_speed(True, 1)
+            await set_motor_speed(False, 1)
+            is_moving = True
 
-    await asyncio.sleep(await only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
+        # if not supposed to be moving, but is moving then stop moving
+        if not moving_backward and not moving_forward and not moving_left and not moving_right and is_moving:
+            await set_motor_speed(True, 0)
+            await set_motor_speed(False, 0)
+            is_moving = False
 
+        await asyncio.sleep(only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
 
-setup()
-asyncio.get_event_loop().run_until_complete(sonar_loop())
-asyncio.get_event_loop().run_until_complete(gps_loop())
-asyncio.get_event_loop().run_until_complete(imu_loop())
-asyncio.get_event_loop().run_until_complete(main_loop())
-asyncio.get_event_loop().run_forever()
+try:
+    setup()
+    asyncio.get_event_loop().run_until_complete(sonar_loop())
+    asyncio.get_event_loop().run_until_complete(gps_loop())
+    asyncio.get_event_loop().run_until_complete(imu_loop())
+    asyncio.get_event_loop().run_until_complete(main_loop())
+    asyncio.get_event_loop().run_forever()
+except:
+    GPIO.cleanup()
+    asyncio.get_event_loop().stop()
