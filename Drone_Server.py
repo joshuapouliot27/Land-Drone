@@ -91,22 +91,18 @@ async def set_json_variables(json_string):
     return
 
 
-def get_position():
-    got_current_position = False
+async def get_position():
     global current_latitude, current_longitude, current_direction_degrees
     gps_packet = gpsd.get_current()
     if gps_packet.mode > 1:
         current_longitude = gps_packet.lon
         current_latitude = gps_packet.lat
-        got_current_position = True
     logging.debug("Current Position: Latitude: {0:.2}; Longitude: {1:.2}".format(current_latitude, current_longitude))
-    return got_current_position
 
 
-def get_sonar_distance():
+async def get_sonar_distance():
     time_start = 0
     time_end = 0
-    distance = None
 
     GPIO.output(sonar_trig_pin, False)
     time.sleep(.05)
@@ -126,7 +122,7 @@ def get_sonar_distance():
     return distance
 
 
-def setup_imu():
+async def setup_imu():
     global magnetometer, accelerometer_gyroscope, heading_calculator
     magnetometer = LIS3MDL()
     accelerometer_gyroscope = LSM6DS33()
@@ -134,14 +130,14 @@ def setup_imu():
     logging.info("IMU setup!")
 
 
-def setup_sonar():
+async def setup_sonar():
     GPIO.setup(sonar_echo_pin, GPIO.IN)
     GPIO.setup(sonar_trig_pin, GPIO.OUT)
     GPIO.output(sonar_trig_pin, False)
     logging.info("Sonar setup!")
 
 
-def setup_motor_drivers():
+async def setup_motor_drivers():
     global left_motor_pwm, right_motor_pwm
     # Left
     GPIO.setup(left_motor_direction_pin, GPIO.OUT)
@@ -158,23 +154,22 @@ def setup_motor_drivers():
     GPIO.setup(right_motor_pwm_speed_pin, GPIO.OUT)
     right_motor_pwm = GPIO.PWM(right_motor_pwm_speed_pin, 1)
 
-    set_motor_direction(True, True)
-    set_motor_direction(True, True)
+    await set_motor_direction(True, True)
+    await set_motor_direction(True, True)
 
-    set_motor_speed(True, 0)
-    set_motor_speed(False, 0)
+    await set_motor_speed(True, 0)
+    await set_motor_speed(False, 0)
 
     logging.info("Motor drivers setup!")
 
 
-def setup_web_socket_server():
+async def setup_web_socket_server():
     start_server = websockets.serve(web_socket_handler, "raspberrypi.local", 8081)
     asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
     logging.info("Websocket server started!")
 
 
-def setup():
+async def setup():
     setupLogging()
 
     GPIO.setmode(GPIO.BOARD)
@@ -197,7 +192,7 @@ def setup():
     logging.info("Setup complete!")
 
 
-def setup_gps():
+async def setup_gps():
     gpsd.connect()
     packet = gpsd.get_current()
     if packet.mode < 2:
@@ -215,13 +210,13 @@ def setup_gps():
     return True
 
 
-def setupLogging():
+async def setupLogging():
     logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
                         filename="drone.log", level=logging.INFO)
     return
 
 
-def set_motor_speed(is_left, percent):
+async def set_motor_speed(is_left, percent):
     logging.info("Set motor speed to " + str(percent) + "%!")
     if is_left:
         if percent is 0 and is_moving:
@@ -245,14 +240,14 @@ def set_motor_speed(is_left, percent):
             right_motor_pwm.ChangeFrequency(percent * max_turn_pwm)
 
 
-def set_motor_direction(is_left, forward):
+async def set_motor_direction(is_left, forward):
     if is_left:
         GPIO.output(left_motor_direction_pin, forward)
     else:
         GPIO.output(right_motor_direction_pin, not forward)
 
 
-def set_proper_direction():
+async def set_proper_direction():
     global dir_left, dir_backward, dir_forward, dir_right
     if moving_forward and not dir_forward:
         logging.info("Going forward!")
@@ -288,7 +283,7 @@ def set_proper_direction():
         dir_forward = False
 
 
-def is_proper_direction():
+async def is_proper_direction():
     if moving_forward and not dir_forward:
         return False
     if moving_left and not dir_left:
@@ -300,7 +295,7 @@ def is_proper_direction():
     return True
 
 
-def check_constant_speed():
+async def check_constant_speed():
     accel_data = accelerometer_gyroscope.get_accelerometer_data()
     ACCx = accel_data.x
     ACCy = accel_data.y
@@ -314,45 +309,49 @@ def check_constant_speed():
 
 setup()
 
-while True:
+async def main_loop():
+    global is_moving
 
     # Remote Stop Button
     if stop_everything and is_moving:
-        set_motor_speed(True, 0)
-        set_motor_speed(False, 0)
+        await set_motor_speed(True, 0)
+        await set_motor_speed(False, 0)
         is_moving = False
 
     # Distance Sensor
-    if get_sonar_distance() <= 4 and is_moving:
-        set_motor_speed(True, 0)
-        set_motor_speed(False, 0)
+    if await get_sonar_distance() <= 4 and is_moving:
+        await set_motor_speed(True, 0)
+        await set_motor_speed(False, 0)
         is_moving = False
 
     # if direction isn't proper, then stop moving change direction and start moving
-    if not is_proper_direction():
+    if not await is_proper_direction():
         if is_moving:
-            set_motor_speed(True, 0)
-            set_motor_speed(False, 0)
+            await set_motor_speed(True, 0)
+            await set_motor_speed(False, 0)
             is_moving = False
-        set_proper_direction()
-        # while not check_constant_speed():
-        # time.sleep(loop_Delay / 1000)
-        set_motor_speed(True, 1)
-        set_motor_speed(False, 1)
+        await set_proper_direction()
+        # while not await check_constant_speed():
+            # time.sleep(loop_Delay / 1000)
+        await set_motor_speed(True, 1)
+        await set_motor_speed(False, 1)
         is_moving = True
 
     # If distance is fine and remote button isn't pressed and not moving, then start moving
-    if get_sonar_distance() > 4 and not is_moving and not stop_everything \
+    if await get_sonar_distance() > 4 and not is_moving and not stop_everything \
             and (moving_right or moving_left or moving_forward or moving_backward):
-        set_motor_speed(True, 1)
-        set_motor_speed(False, 1)
+        await set_motor_speed(True, 1)
+        await set_motor_speed(False, 1)
         is_moving = True
 
     # if not supposed to be moving, but is moving then stop moving
     if not moving_backward and not moving_forward and not moving_left and not moving_right and is_moving:
-        set_motor_speed(True, 0)
-        set_motor_speed(False, 0)
+        await set_motor_speed(True, 0)
+        await set_motor_speed(False, 0)
         is_moving = False
 
     time.sleep(loop_Delay / 1000)
+
+asyncio.get_event_loop().run_until_complete(main_loop())
+asyncio.get_event_loop().run_forever()
 
