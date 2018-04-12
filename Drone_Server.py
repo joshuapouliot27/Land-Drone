@@ -52,7 +52,6 @@ gps_frequency = 20
 imu_frequency = 50
 sonar_frequency = 20
 
-
 # Misc Variables
 max_pwm = 20000
 max_turn_pwm = 8000
@@ -305,15 +304,18 @@ async def check_constant_speed():
     else:
         return False
 
+
 async def only_positive_numbers(number: float):
     if number > 0:
         return number
     else:
         return 0
 
+
 async def get_true_heading():
     global current_direction_degrees
     current_direction_degrees = await heading_calculator.calculate_tilt_compensated_heading()
+
 
 async def sonar_loop():
     time_start = time.time()
@@ -327,10 +329,12 @@ async def gps_loop():
     await get_position()
     await asyncio.sleep(await only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
 
+
 async def imu_loop():
     time_start = time.time()
     await get_true_heading()
     await asyncio.sleep(await only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
+
 
 async def main_loop():
     global is_moving
@@ -351,12 +355,12 @@ async def main_loop():
             is_moving = False
         await set_proper_direction()
         # while not await check_constant_speed():
-            # time.sleep(loop_Delay / 1000)
+        # time.sleep(loop_Delay / 1000)
         await set_motor_speed(True, 1)
         await set_motor_speed(False, 1)
         is_moving = True
-    await print("can mode: "+str(await get_sonar_distance() > 4 and not is_moving \
-            and (moving_right or moving_left or moving_forward or moving_backward)))
+    await print("can mode: " + str(await get_sonar_distance() > 4 and not is_moving \
+                                   and (moving_right or moving_left or moving_forward or moving_backward)))
     # If distance is fine and remote button isn't pressed and not moving, then start moving
     if await get_sonar_distance() > 4 and not is_moving \
             and (moving_right or moving_left or moving_forward or moving_backward):
@@ -372,10 +376,10 @@ async def main_loop():
 
     await asyncio.sleep(await only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
 
+
 setup()
 asyncio.get_event_loop().run_until_complete(sonar_loop())
 asyncio.get_event_loop().run_until_complete(gps_loop())
 asyncio.get_event_loop().run_until_complete(imu_loop())
 asyncio.get_event_loop().run_until_complete(main_loop())
 asyncio.get_event_loop().run_forever()
-
