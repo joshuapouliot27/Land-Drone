@@ -88,11 +88,11 @@ async def set_json_variables(json_string):
     moving_right = bool(json_data["moving_right"])
     moving_left = bool(json_data["moving_left"])
     stop_everything = bool(json_data["stop_everything"])
-    print("moving forward: " + moving_forward)
-    print("moving backward: " + moving_backward)
-    print("moving right: " + moving_right)
-    print("moving left: " + moving_left)
-    print("stop everything: " + stop_everything)
+    print("moving forward: " + str(moving_forward))
+    print("moving backward: " + str(moving_backward))
+    print("moving right: " + str(moving_right))
+    print("moving left: " + str(moving_left))
+    print("stop everything: " + str(stop_everything))
     return
 
 
