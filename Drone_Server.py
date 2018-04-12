@@ -222,7 +222,7 @@ def setupLogging():
 
 
 def set_motor_speed(is_left, percent):
-    logging.info("Set motor speed to " + percent + "%!")
+    logging.info("Set motor speed to " + str(percent) + "%!")
     if is_left:
         if percent is 0 and is_moving:
             left_motor_pwm.stop()
