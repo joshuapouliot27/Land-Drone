@@ -82,13 +82,17 @@ async def get_json_string():
 
 async def set_json_variables(json_string):
     global moving_forward, moving_backward, moving_left, moving_right, stop_everything
-    print("got json data: "+str(json_string))
     json_data = json.loads(json_string)
     moving_forward = bool(json_data["moving_forward"])
     moving_backward = bool(json_data["moving_backward"])
     moving_right = bool(json_data["moving_right"])
     moving_left = bool(json_data["moving_left"])
     stop_everything = bool(json_data["stop_everything"])
+    print("moving forward: " + moving_forward)
+    print("moving backward: " + moving_backward)
+    print("moving right: " + moving_right)
+    print("moving left: " + moving_left)
+    print("stop everything: " + stop_everything)
     return
 
 
