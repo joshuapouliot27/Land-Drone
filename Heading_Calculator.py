@@ -56,6 +56,7 @@ class Heading_Calculator:
         self.gyro_accel = gyroscope_accelerometer
 
         self.a = datetime.datetime.now()
+        self.b = 0
 
     async def readACCx(self):
         return self.gyro_accel.get_accelerometer_data().x
@@ -102,9 +103,9 @@ class Heading_Calculator:
         MAGz -= (self.magZmin + self.magZmax) / 2
 
         # Calculate loop Period(LP). How long between Gyro Reads
-        b = datetime.datetime.now() - a
-        a = datetime.datetime.now()
-        LP = b.microseconds / (1000000 * 1.0)
+        self.b = datetime.datetime.now() - self.a
+        self.a = datetime.datetime.now()
+        LP = self.b.microseconds / (1000000 * 1.0)
 
         # Convert Gyro raw to degrees per second
         rate_gyr_x = GYRx * self.G_GAIN
