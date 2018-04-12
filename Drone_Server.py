@@ -88,11 +88,6 @@ async def set_json_variables(json_string):
     moving_right = bool(json_data["moving_right"])
     moving_left = bool(json_data["moving_left"])
     stop_everything = bool(json_data["stop_everything"])
-    print("moving forward: " + str(moving_forward))
-    print("moving backward: " + str(moving_backward))
-    print("moving right: " + str(moving_right))
-    print("moving left: " + str(moving_left))
-    print("stop everything: " + str(stop_everything))
     return
 
 
@@ -163,6 +158,12 @@ def setup_motor_drivers():
     GPIO.setup(right_motor_pwm_speed_pin, GPIO.OUT)
     right_motor_pwm = GPIO.PWM(right_motor_pwm_speed_pin, 1)
 
+    set_motor_direction(True, True)
+    set_motor_direction(True, True)
+
+    set_motor_speed(True, 0)
+    set_motor_speed(False, 0)
+
     logging.info("Motor drivers setup!")
 
 
@@ -174,7 +175,8 @@ def setup_web_socket_server():
 
 
 def setup():
-    gpio_pins_setup = False
+    setupLogging()
+
     GPIO.setmode(GPIO.BOARD)
 
     # GPS
@@ -193,8 +195,6 @@ def setup():
     setup_web_socket_server()
 
     logging.info("Setup complete!")
-
-    return gpio_pins_setup
 
 
 def setup_gps():
@@ -221,7 +221,7 @@ def setupLogging():
     return
 
 
-def setMotorSpeed(is_left, percent):
+def set_motor_speed(is_left, percent):
     logging.info("Set motor speed to " + percent + "%!")
     if is_left:
         if percent is 0 and is_moving:
@@ -310,67 +310,47 @@ def check_constant_speed():
     else:
         return False
 
-
-setupLogging()
 setup()
-setup_gps()
-get_position()
-set_motor_direction(True, True)
-set_motor_direction(True, True)
 
 while True:
 
     # Remote Stop Button
     if stop_everything and is_moving:
-        setMotorSpeed(True, 0)
-        setMotorSpeed(False, 0)
+        set_motor_speed(True, 0)
+        set_motor_speed(False, 0)
         is_moving = False
 
     # Distance Sensor
     if get_sonar_distance() <= 4 and is_moving:
-        setMotorSpeed(True, 0)
-        setMotorSpeed(False, 0)
+        set_motor_speed(True, 0)
+        set_motor_speed(False, 0)
         is_moving = False
 
     # if direction isn't proper, then stop moving change direction and start moving
     if not is_proper_direction():
         if is_moving:
-            setMotorSpeed(True, 0)
-            setMotorSpeed(False, 0)
+            set_motor_speed(True, 0)
+            set_motor_speed(False, 0)
             is_moving = False
         set_proper_direction()
         # while not check_constant_speed():
         # time.sleep(loop_Delay / 1000)
-        setMotorSpeed(True, 1)
-        setMotorSpeed(False, 1)
+        set_motor_speed(True, 1)
+        set_motor_speed(False, 1)
         is_moving = True
 
     # If distance is fine and remote button isn't pressed and not moving, then start moving
     if get_sonar_distance() > 4 and not is_moving and not stop_everything \
             and (moving_right or moving_left or moving_forward or moving_backward):
-        setMotorSpeed(True, 1)
-        setMotorSpeed(False, 1)
+        set_motor_speed(True, 1)
+        set_motor_speed(False, 1)
         is_moving = True
 
     # if not supposed to be moving, but is moving then stop moving
     if not moving_backward and not moving_forward and not moving_left and not moving_right and is_moving:
-        setMotorSpeed(True, 0)
-        setMotorSpeed(False, 0)
+        set_motor_speed(True, 0)
+        set_motor_speed(False, 0)
         is_moving = False
 
     time.sleep(loop_Delay / 1000)
-    break
 
-time.sleep(5)
-print("switching direction")
-set_motor_direction(True, False)
-set_motor_direction(False, False)
-time.sleep(5)
-for x in range(1, 20000):
-    left_motor_pwm.ChangeFrequency(x)
-    right_motor_pwm.ChangeFrequency(x)
-    time.sleep(.01)
-time.sleep(5)
-left_motor_pwm.stop()
-right_motor_pwm.stop()
-GPIO.cleanup()
