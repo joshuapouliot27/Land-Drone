@@ -325,18 +325,18 @@ async def sonar_loop():
     time_start = time.time()
     global current_distance_ahead
     current_distance_ahead = await get_sonar_distance()
-    await time.sleep(await only_positive_numbers((1 / sonar_frequency) - (time.time() - time_start)))
+    await asyncio.sleep(await only_positive_numbers((1 / sonar_frequency) - (time.time() - time_start)))
 
 
 async def gps_loop():
     time_start = time.time()
     await get_position()
-    await time.sleep(await only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
+    await asyncio.sleep(await only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
 
 async def imu_loop():
     time_start = time.time()
     await get_true_heading()
-    await time.sleep(await only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
+    await asyncio.sleep(await only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
 
 async def main_loop():
     global is_moving
@@ -381,7 +381,7 @@ async def main_loop():
         await set_motor_speed(False, 0)
         is_moving = False
 
-    await time.sleep(await only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
+    await asyncio.sleep(await only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
 
 setup()
 asyncio.get_event_loop().run_until_complete(sonar_loop())
