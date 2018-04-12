@@ -22,7 +22,7 @@ def distance_between_points(lat1, lat2, lon1, lon2):
     return distance
 
 
-def heading_between_points(lat1, lat2, lon1, lon2, heading):
+def heading_between_points(lat1, lat2, lon1, lon2):
     y = math.sin(lon2 - lon1) * math.cos(lat2)
     x = (math.cos(lat1) * math.sin(lat2)) - (math.sin(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
     bearing = math.degrees(math.atan2(y, x))
