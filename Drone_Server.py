@@ -56,14 +56,14 @@ accel_offset_x = -0.007706830092610056
 accel_offset_y = -0.9543302538970905
 
 async def web_socket_message_input(websocket: websockets.WebSocketClientProtocol, path):
-    message = await websocket.recv()
-    if message is "return":
-        json_data = construct_json_dictionary(moving_Left, moving_Right, moving_Forward, moving_Backward,
+    async for message in websocket:
+        if message is "return":
+            json_data = construct_json_dictionary(moving_Left, moving_Right, moving_Forward, moving_Backward,
                                      current_Latitude, current_Longitude, current_Direction_Degrees,
                                      current_Distance_Ahead, stop_Everything)
-        await websocket.send(json_data)
-    else:
-        set_variables_from_json_data(message)
+            await websocket.send(json_data)
+        else:
+            set_variables_from_json_data(message)
 
 class JSON_File_Handler(FileSystemEventHandler):
     def __init__(self, function, filename):
