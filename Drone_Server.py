@@ -1,9 +1,6 @@
 import logging, json, time
 
-import math, watchdog, gpsd, asyncio, websockets
-
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileModifiedEvent
+import math, gpsd, asyncio, websockets
 
 from Heading_Calculator import Heading_Calculator
 from LIS3MDL import LIS3MDL
