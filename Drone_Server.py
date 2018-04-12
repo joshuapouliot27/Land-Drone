@@ -55,7 +55,7 @@ accel_offset_y = -0.9543302538970905
 async def web_socket_message_input(websocket, path):
     async for message in websocket:
         print("message: "+str(message)+"; is it 'return'?: "+str("return" in message))
-        if "return" in message:
+        if not "return" in message:
             json_data = await construct_json_dictionary(moving_Left, moving_Right, moving_Forward, moving_Backward,
                                      current_Latitude, current_Longitude, current_Direction_Degrees,
                                      current_Distance_Ahead, stop_Everything)
