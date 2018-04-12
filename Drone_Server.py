@@ -171,13 +171,13 @@ def setup_gps():
         logging.warning("GPS still does not have a fix.")
         counter += 1
         time.sleep(.2)
-    logging.debug("GPS has fix.")
+    logging.info("GPS has fix.")
     return True
 
 
 def setupLogging():
     logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
-                        filename="drone.log", level=logging.DEBUG)
+                        filename="drone.log", level=logging.INFO)
     return
 
 
