@@ -229,7 +229,7 @@ def set_motor_speed(is_left, percent):
         elif percent > 0 and not is_moving:
             left_motor_pwm.start(50)
 
-        if not dir_left or not dir_right and percent > 0:
+        if (not dir_left or not dir_right) and percent > 0:
             left_motor_pwm.ChangeFrequency(percent * max_pwm)
         elif percent > 0:
             left_motor_pwm.ChangeFrequency(percent * max_turn_pwm)
@@ -239,7 +239,7 @@ def set_motor_speed(is_left, percent):
         elif percent > 0 and not is_moving:
             right_motor_pwm.start(50)
 
-        if not dir_left or not dir_right and percent > 0:
+        if (not dir_left or not dir_right) and percent > 0:
             right_motor_pwm.ChangeFrequency(percent * max_pwm)
         elif percent > 0:
             right_motor_pwm.ChangeFrequency(percent * max_turn_pwm)
