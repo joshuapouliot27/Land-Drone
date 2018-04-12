@@ -160,9 +160,6 @@ def setup_motor_drivers():
     set_motor_direction(True, True)
     set_motor_direction(True, True)
 
-    set_motor_speed(True, 0)
-    set_motor_speed(False, 0)
-
     logging.info("Motor drivers setup!")
 
 
