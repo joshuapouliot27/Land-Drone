@@ -48,7 +48,7 @@ right_motor_pwm = None
 
 # File Variables
 program_Changed_File = False
-json_Filename = "land_drone.JSON"
+json_Filename = "/var/WWW/html/Land-Drone-Website/land_drone.JSON"
 
 # Misc Variables
 max_pwm = 20000
