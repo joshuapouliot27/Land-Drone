@@ -1,6 +1,6 @@
 import logging, json, time
 
-import math, watchdog, gpsd
+import math, watchdog, gpsd, asyncio, websockets
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
@@ -46,10 +46,6 @@ stop_button_input_pin = 19
 left_motor_pwm = None
 right_motor_pwm = None
 
-# File Variables
-program_Changed_File = False
-json_Filename = "/var/WWW/html/Land-Drone-Website/land_drone.JSON"
-
 # Misc Variables
 max_pwm = 20000
 max_turn_pwm = 8000
@@ -59,6 +55,15 @@ loop_Delay = 1  # How much time in milliseconds to wait after every loop
 accel_offset_x = -0.007706830092610056
 accel_offset_y = -0.9543302538970905
 
+async def web_socket_message_input(websocket: websockets.WebSocketClientProtocol, path):
+    message = await websocket.recv()
+    if message is "return":
+        json_data = construct_json_dictionary(moving_Left, moving_Right, moving_Forward, moving_Backward,
+                                     current_Latitude, current_Longitude, current_Direction_Degrees,
+                                     current_Distance_Ahead, stop_Everything)
+        await websocket.send(json_data)
+    else:
+        set_variables_from_json_data(message)
 
 class JSON_File_Handler(FileSystemEventHandler):
     def __init__(self, function, filename):
@@ -86,32 +91,7 @@ def construct_json_dictionary(moving_left, moving_right, moving_forward, moving_
     }
     return data
 
-
-def write_json_file(moving_left, moving_right, moving_forward, moving_backword, current_latitude, current_longitude,
-                    current_direction_degrees, current_distance_ahead, stop_everything, json_filename):
-    wrote_file = False
-    data = construct_json_dictionary(moving_left, moving_right, moving_forward, moving_backword,
-                                     current_latitude, current_longitude, current_direction_degrees,
-                                     current_distance_ahead, stop_everything)
-
-    try:
-        with open(json_filename, 'w') as file:
-            json.dump(data, file, indent=4, ensure_ascii=False, sort_keys=True)
-            wrote_file = True
-    except OSError:
-        logging.error("Could not open " + str(json_filename) + ".")
-    return wrote_file
-
-
-def read_json_file(json_filename):
-    data = None
-    with open(json_filename, 'r') as file:
-        data = json.load(file)
-    return data
-
-
-def set_variables_from_json_data():
-    json_data = read_json_file(json_Filename)
+def set_variables_from_json_data(json_data):
     global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
     moving_Forward = bool(json_data["moving_forward"])
     moving_Backward = bool(json_data["moving_backward"])
@@ -181,6 +161,12 @@ def setup_gpio_pins():
     GPIO.setup(right_motor_pwm_speed_pin, GPIO.OUT)
     right_motor_pwm = GPIO.PWM(right_motor_pwm_speed_pin, 1)
     time.sleep(1)
+
+    #Websocket server
+    start_server = websockets.serve(web_socket_message_input,"raspberrypi.local",8081)
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
+
     return gpio_pins_setup
 
 
@@ -310,10 +296,6 @@ set_motor_direction(True, True)
 set_motor_direction(True, True)
 heading_calculator = Heading_Calculator(accel_gyro, magnetometer)
 dir_Forward = True
-event_handler = JSON_File_Handler(set_variables_from_json_data, json_Filename)
-observer = Observer()
-observer.schedule(event_handler, path='./')
-observer.start()
 moving_Forward = True
 
 while True:
@@ -361,16 +343,14 @@ while True:
 
 time.sleep(5)
 print("switching direction")
-set_motor_direction(True,False)
-set_motor_direction(False,False)
+set_motor_direction(True, False)
+set_motor_direction(False, False)
 time.sleep(5)
-for x in range(1,20000):
+for x in range(1, 20000):
     left_motor_pwm.ChangeFrequency(x)
     right_motor_pwm.ChangeFrequency(x)
     time.sleep(.01)
 time.sleep(5)
 left_motor_pwm.stop()
 right_motor_pwm.stop()
-observer.stop()
-observer.join()
 GPIO.cleanup()
