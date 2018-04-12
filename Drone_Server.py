@@ -128,7 +128,7 @@ async def get_sonar_distance():
     return distance
 
 
-async def setup_imu():
+def setup_imu():
     global magnetometer, accelerometer_gyroscope, heading_calculator
     magnetometer = LIS3MDL()
     accelerometer_gyroscope = LSM6DS33()
@@ -136,14 +136,14 @@ async def setup_imu():
     logging.info("IMU setup!")
 
 
-async def setup_sonar():
+def setup_sonar():
     GPIO.setup(sonar_echo_pin, GPIO.IN)
     GPIO.setup(sonar_trig_pin, GPIO.OUT)
     GPIO.output(sonar_trig_pin, False)
     logging.info("Sonar setup!")
 
 
-async def setup_motor_drivers():
+def setup_motor_drivers():
     global left_motor_pwm, right_motor_pwm
     # Left
     GPIO.setup(left_motor_direction_pin, GPIO.OUT)
@@ -160,16 +160,16 @@ async def setup_motor_drivers():
     GPIO.setup(right_motor_pwm_speed_pin, GPIO.OUT)
     right_motor_pwm = GPIO.PWM(right_motor_pwm_speed_pin, 1)
 
-    await set_motor_direction(True, True)
-    await set_motor_direction(True, True)
+    set_motor_direction(True, True)
+    set_motor_direction(True, True)
 
-    await set_motor_speed(True, 0)
-    await set_motor_speed(False, 0)
+    set_motor_speed(True, 0)
+    set_motor_speed(False, 0)
 
     logging.info("Motor drivers setup!")
 
 
-async def setup_web_socket_server():
+def setup_web_socket_server():
     start_server = websockets.serve(web_socket_handler, "raspberrypi.local", 8081)
     asyncio.get_event_loop().run_until_complete(start_server)
     logging.info("Websocket server started!")
@@ -198,7 +198,7 @@ def setup():
     logging.info("Setup complete!")
 
 
-async def setup_gps():
+def setup_gps():
     gpsd.connect()
     packet = gpsd.get_current()
     if packet.mode < 2:
@@ -215,7 +215,7 @@ async def setup_gps():
     logging.info("GPS has fix.")
 
 
-async def setupLogging():
+def setupLogging():
     logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
                         filename="drone.log", level=logging.INFO)
 
