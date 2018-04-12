@@ -355,7 +355,8 @@ async def main_loop():
         await set_motor_speed(True, 1)
         await set_motor_speed(False, 1)
         is_moving = True
-
+    await print("can mode: "+str(await get_sonar_distance() > 4 and not is_moving \
+            and (moving_right or moving_left or moving_forward or moving_backward)))
     # If distance is fine and remote button isn't pressed and not moving, then start moving
     if await get_sonar_distance() > 4 and not is_moving \
             and (moving_right or moving_left or moving_forward or moving_backward):
