@@ -175,7 +175,7 @@ async def setup_web_socket_server():
     logging.info("Websocket server started!")
 
 
-async def setup():
+def setup():
     setupLogging()
 
     GPIO.setmode(GPIO.BOARD)
@@ -207,19 +207,17 @@ async def setup_gps():
     while packet.mode < 2:
         if counter > 150:
             logging.error("GPS cannot get a fix!")
-            return False
+            return
         packet = gpsd.get_current()
         logging.warning("GPS still does not have a fix.")
         counter += 1
         time.sleep(.2)
     logging.info("GPS has fix.")
-    return True
 
 
 async def setupLogging():
     logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
                         filename="drone.log", level=logging.INFO)
-    return
 
 
 async def set_motor_speed(is_left, percent):
