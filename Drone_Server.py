@@ -311,8 +311,8 @@ async def check_constant_speed():
     else:
         return False
 
-async def only_positive_numbers(number):
-    if (number) > 0:
+async def only_positive_numbers(number: float):
+    if number > 0:
         return number
     else:
         return 0
