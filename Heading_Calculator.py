@@ -57,44 +57,44 @@ class Heading_Calculator:
 
         self.a = datetime.datetime.now()
 
-    def readACCx(self):
+    async def readACCx(self):
         return self.gyro_accel.get_accelerometer_data().x
 
-    def readACCy(self):
+    async def readACCy(self):
         return self.gyro_accel.get_accelerometer_data().y
 
-    def readACCz(self):
+    async def readACCz(self):
         return self.gyro_accel.get_accelerometer_data().z
 
-    def readMAGx(self):
+    async def readMAGx(self):
         return self.magn.get_magnetometer_data().x
 
-    def readMAGy(self):
+    async def readMAGy(self):
         return self.magn.get_magnetometer_data().y
 
-    def readMAGz(self):
+    async def readMAGz(self):
         return self.magn.get_magnetometer_data().z
 
-    def readGYRx(self):
+    async def readGYRx(self):
         return self.gyro_accel.get_gyroscope_data().x
 
-    def readGYRy(self):
+    async def readGYRy(self):
         return self.gyro_accel.get_gyroscope_data().y
 
-    def readGYRz(self):
+    async def readGYRz(self):
         return self.gyro_accel.get_gyroscope_data().z
 
-    def calculate_tile_comp_heading(self):
+    async def calculate_tilt_compensated_heading(self):
         # Read the accelerometer,gyroscope and magnetometer values
-        ACCx = self.readACCx()
-        ACCy = self.readACCy()
-        ACCz = self.readACCz()
-        GYRx = self.readGYRx()
-        GYRy = self.readGYRy()
-        GYRz = self.readGYRz()
-        MAGx = self.readMAGx()
-        MAGy = self.readMAGy()
-        MAGz = self.readMAGz()
+        ACCx = await self.readACCx()
+        ACCy = await self.readACCy()
+        ACCz = await self.readACCz()
+        GYRx = await self.readGYRx()
+        GYRy = await self.readGYRy()
+        GYRz = await self.readGYRz()
+        MAGx = await self.readMAGx()
+        MAGy = await self.readMAGy()
+        MAGz = await self.readMAGz()
 
         # Apply hard iron calibration to compass
         MAGx -= (self.magXmin + self.magXmax) / 2
@@ -137,7 +137,7 @@ class Heading_Calculator:
         ############################ END ##################################
 
         # Calculate heading
-        heading = 180 * math.atan2(MAGy, MAGx) / M_PI
+        heading = 180 * math.atan2(MAGy, MAGx) / self.M_PI
 
         # Only have our heading between 0 and 360
         if heading < 0:
@@ -168,7 +168,7 @@ class Heading_Calculator:
             pitch)
 
         # Calculate tilt compensated heading
-        tiltCompensatedHeading = 180 * math.atan2(magYcomp, magXcomp) / M_PI
+        tiltCompensatedHeading = 180 * math.atan2(magYcomp, magXcomp) / self.M_PI
 
         if tiltCompensatedHeading < 0:
             tiltCompensatedHeading += 360

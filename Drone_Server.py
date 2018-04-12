@@ -46,12 +46,18 @@ magnetometer = None
 accelerometer_gyroscope = None
 heading_calculator = None
 
+# Frequency variables
+main_loop_frequency = 1
+gps_frequency = 20
+imu_frequency = 50
+sonar_frequency = 20
+
+
 # Misc Variables
 max_pwm = 20000
 max_turn_pwm = 8000
 accelerometer_threshold = 0.05
 stop_everything = False
-loop_Delay = 1  # How much time in milliseconds to wait after every loop
 accelerometer_offset_x = -0.007706830092610056
 accelerometer_offset_y = -0.9543302538970905
 
@@ -307,10 +313,38 @@ async def check_constant_speed():
     else:
         return False
 
-setup()
+async def only_positive_numbers(time_start : float, time_end : float):
+    time_taken = time_end - time_start
+    if (time_end-time_start) > 0:
+        return time_taken
+    else:
+        return 0
+
+async def get_true_heading():
+    global current_direction_degrees
+    current_direction_degrees = await heading_calculator.calculate_tilt_compensated_heading()
+
+async def sonar_loop():
+    time_start = time.time()
+    global current_distance_ahead
+    current_distance_ahead = await get_sonar_distance()
+    await time.sleep((1 / sonar_frequency) - await only_positive_numbers(time_start, time.time()))
+
+
+async def gps_loop():
+    time_start = time.time()
+    await get_position()
+    await time.sleep((1 / gps_frequency) - await only_positive_numbers(time_start, time.time()))
+
+async def imu_loop():
+    time_start = time.time()
+    await get_true_heading()
+    await time.sleep((1 / imu_frequency) - await only_positive_numbers(time_start, time.time()))
 
 async def main_loop():
     global is_moving
+
+    time_start = time.time()
 
     # Remote Stop Button
     if stop_everything and is_moving:
@@ -350,8 +384,12 @@ async def main_loop():
         await set_motor_speed(False, 0)
         is_moving = False
 
-    time.sleep(loop_Delay / 1000)
+    await time.sleep((1 / main_loop_frequency) - await only_positive_numbers(time_start, time.time()))
 
+setup()
+asyncio.get_event_loop().run_until_complete(sonar_loop())
+asyncio.get_event_loop().run_until_complete(gps_loop())
+asyncio.get_event_loop().run_until_complete(imu_loop())
 asyncio.get_event_loop().run_until_complete(main_loop())
 asyncio.get_event_loop().run_forever()
 
