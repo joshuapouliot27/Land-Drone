@@ -57,7 +57,7 @@ async def web_socket_message_input(websocket, path):
         logging.info("Message recieved: " + str(message))
         print("Message recieved: " + str(message))
         if message is "return":
-            json_data = construct_json_dictionary(moving_Left, moving_Right, moving_Forward, moving_Backward,
+            json_data = await construct_json_dictionary(moving_Left, moving_Right, moving_Forward, moving_Backward,
                                      current_Latitude, current_Longitude, current_Direction_Degrees,
                                      current_Distance_Ahead, stop_Everything)
             await websocket.send(json_data)
