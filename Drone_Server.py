@@ -77,10 +77,11 @@ async def construct_json_dictionary(moving_left, moving_right, moving_forward, m
         "current_distance_ahead": current_distance_ahead,
         "stop_everything": stop_everything
     }
-    return data
+    return json.dumps(data)
 
-async def set_variables_from_json_data(json_data):
+async def set_variables_from_json_data(json_string):
     global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
+    json_data = json.loads(json_string)
     moving_Forward = bool(json_data["moving_forward"])
     moving_Backward = bool(json_data["moving_backward"])
     moving_Right = bool(json_data["moving_right"])
