@@ -382,11 +382,11 @@ async def main_loop():
 
 try:
     setup()
-    asyncio.get_event_loop().run_until_complete(sonar_loop())
-    asyncio.get_event_loop().run_until_complete(gps_loop())
-    asyncio.get_event_loop().run_until_complete(imu_loop())
-    asyncio.get_event_loop().run_until_complete(main_loop())
-    asyncio.get_event_loop().run_forever()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(sonar_loop())
+    loop.run_until_complete(gps_loop())
+    loop.run_until_complete(imu_loop())
+    loop.run_until_complete(main_loop())
 except:
     GPIO.cleanup()
     asyncio.get_event_loop().stop()
