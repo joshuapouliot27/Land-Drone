@@ -55,15 +55,16 @@ loop_Delay = 1  # How much time in milliseconds to wait after every loop
 accel_offset_x = -0.007706830092610056
 accel_offset_y = -0.9543302538970905
 
-async def web_socket_message_input(websocket: websockets.WebSocketClientProtocol, path):
+async def web_socket_message_input(websocket, path):
     async for message in websocket:
         if message is "return":
             json_data = construct_json_dictionary(moving_Left, moving_Right, moving_Forward, moving_Backward,
                                      current_Latitude, current_Longitude, current_Direction_Degrees,
                                      current_Distance_Ahead, stop_Everything)
+            logging.info("Message recieved: "+str(message))
             await websocket.send(json_data)
         else:
-            set_variables_from_json_data(message)
+            await set_variables_from_json_data(message)
 
 class JSON_File_Handler(FileSystemEventHandler):
     def __init__(self, function, filename):
@@ -76,7 +77,7 @@ class JSON_File_Handler(FileSystemEventHandler):
             self.function()
 
 
-def construct_json_dictionary(moving_left, moving_right, moving_forward, moving_backword, current_latitude,
+async def construct_json_dictionary(moving_left, moving_right, moving_forward, moving_backword, current_latitude,
                               current_longitude, current_direction_degrees, current_distance_ahead, stop_everything):
     data = {
         "moving_left": moving_left,
@@ -91,7 +92,7 @@ def construct_json_dictionary(moving_left, moving_right, moving_forward, moving_
     }
     return data
 
-def set_variables_from_json_data(json_data):
+async def set_variables_from_json_data(json_data):
     global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
     moving_Forward = bool(json_data["moving_forward"])
     moving_Backward = bool(json_data["moving_backward"])
