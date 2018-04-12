@@ -1,74 +1,76 @@
-import logging, json, time
+import asyncio
+import gpsd
+import json
+import logging
+import math
+import time
+import websockets
 
-import math, gpsd, asyncio, websockets
+import RPi.GPIO as GPIO
 
 from Heading_Calculator import Heading_Calculator
 from LIS3MDL import LIS3MDL
 from LSM6DS33 import LSM6DS33
 
-# import RPi.GPIO as GPIO # For the pi
-from RPi import GPIO  # For editing
-
-GPIO.VERBOSE = False  # For editing
-
 # Action Variables
-moving_Left = False
-moving_Right = False
-moving_Forward = False
-moving_Backward = False
+moving_left = False
+moving_right = False
+moving_forward = False
+moving_backward = False
 
 # Current Value Variables
-current_Latitude = None
-current_Longitude = None
-current_Direction_Degrees = None
-current_Distance_Ahead = None
-dir_Left = False
-dir_Right = False
-dir_Forward = False
-dir_Backward = False
-is_Moving = False
+current_latitude = None
+current_longitude = None
+current_direction_degrees = None
+current_distance_ahead = None
+dir_left = False
+dir_right = False
+dir_forward = False
+dir_backward = False
+is_moving = False
 
 # Pin Number Variables
 left_motor_direction_pin = 15
 right_motor_direction_pin = 16
 left_motor_pwm_speed_pin = 11
 right_motor_pwm_speed_pin = 12
-# gps_rx_pin = 8
-# gps_tx_pin = 10
 sonar_trig_pin = 18
 sonar_echo_pin = 22
-stop_button_input_pin = 19
 
 # GPIO variables
 left_motor_pwm = None
 right_motor_pwm = None
 
+# IMU Variables
+magnetometer = None
+accelerometer_gyroscope = None
+heading_calculator = None
+
 # Misc Variables
 max_pwm = 20000
 max_turn_pwm = 8000
-accel_threshold = 0.05
-stop_Everything = False
+accelerometer_threshold = 0.05
+stop_everything = False
 loop_Delay = 1  # How much time in milliseconds to wait after every loop
-accel_offset_x = -0.007706830092610056
-accel_offset_y = -0.9543302538970905
+accelerometer_offset_x = -0.007706830092610056
+accelerometer_offset_y = -0.9543302538970905
 
-async def web_socket_message_input(websocket, path):
-    async for message in websocket:
+
+async def web_socket_handler(web_socket, path):
+    async for message in web_socket:
         if "return" in message:
-            json_data = await construct_json_dictionary(moving_Left, moving_Right, moving_Forward, moving_Backward,
-                                     current_Latitude, current_Longitude, current_Direction_Degrees,
-                                     current_Distance_Ahead, stop_Everything)
-            await websocket.send(json_data)
+            json_data = await get_json_string()
+            await web_socket.send(json_data)
         else:
-            await set_variables_from_json_data(message)
+            await set_json_variables(message)
 
-async def construct_json_dictionary(moving_left, moving_right, moving_forward, moving_backword, current_latitude,
-                              current_longitude, current_direction_degrees, current_distance_ahead, stop_everything):
+
+async def get_json_string():
     data = {
         "moving_left": moving_left,
         "moving_right": moving_right,
         "moving_forward": moving_forward,
-        "moving_backward": moving_backword,
+        "moving_backward": moving_backward,
         "current_latitude": current_latitude,
         "current_longitude": current_longitude,
         "current_direction_degrees": current_direction_degrees,
@@ -77,30 +79,31 @@ async def construct_json_dictionary(moving_left, moving_right, moving_forward, m
     }
     return json.dumps(data)
 
-async def set_variables_from_json_data(json_string):
-    global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
+
+async def set_json_variables(json_string):
+    global moving_forward, moving_backward, moving_left, moving_right, stop_everything
     json_data = json.loads(json_string)
-    moving_Forward = bool(json_data["moving_forward"])
-    moving_Backward = bool(json_data["moving_backward"])
-    moving_Right = bool(json_data["moving_right"])
-    moving_Left = bool(json_data["moving_left"])
-    stop_Everything = bool(json_data["stop_everything"])
+    moving_forward = bool(json_data["moving_forward"])
+    moving_backward = bool(json_data["moving_backward"])
+    moving_right = bool(json_data["moving_right"])
+    moving_left = bool(json_data["moving_left"])
+    stop_everything = bool(json_data["stop_everything"])
     return
 
 
-def get_position_and_direction():
+def get_position():
     got_current_position = False
-    got_direction = False
-    global current_Latitude, current_Longitude, current_Direction_Degrees
+    global current_latitude, current_longitude, current_direction_degrees
     gps_packet = gpsd.get_current()
     if gps_packet.mode > 1:
-        current_Longitude = gps_packet.lon
-        current_Latitude = gps_packet.lat
+        current_longitude = gps_packet.lon
+        current_latitude = gps_packet.lat
         got_current_position = True
+    logging.debug("Current Position: Latitude: {0:.2}; Longitude: {1:.2}".format(current_latitude, current_longitude))
     return got_current_position
 
 
-def get_distance_ahead():
+def get_sonar_distance():
     time_start = 0
     time_end = 0
     distance = None
@@ -119,25 +122,28 @@ def get_distance_ahead():
 
     total_time = time_end - time_start
     distance = (total_time / 2) * 1125.33  # Calculated in ft/s
-
+    logging.debug("Sonar distance: {0:.2} ft".format(distance))
     return distance
 
 
-def setup_gpio_pins():
-    global left_motor_pwm, right_motor_pwm
-    gpio_pins_setup = False
-    GPIO.setmode(GPIO.BOARD)
-    # Stop Button
-    GPIO.setup(stop_button_input_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    # GPS
-    setup_gps()
-    # IMU
+def setup_imu():
+    global magnetometer, accelerometer_gyroscope, heading_calculator
+    magnetometer = LIS3MDL()
+    accelerometer_gyroscope = LSM6DS33()
+    heading_calculator = Heading_Calculator(accelerometer_gyroscope, magnetometer)
+    logging.info("IMU setup!")
 
-    # Sonar
+
+def setup_sonar():
     GPIO.setup(sonar_echo_pin, GPIO.IN)
     GPIO.setup(sonar_trig_pin, GPIO.OUT)
     GPIO.output(sonar_trig_pin, False)
-    # Drive Motor
+    logging.info("Sonar setup!")
+
+
+def setup_motor_drivers():
+    global left_motor_pwm, right_motor_pwm
+    # Left
     GPIO.setup(left_motor_direction_pin, GPIO.OUT)
     GPIO.output(left_motor_direction_pin, False)
     GPIO.setup(right_motor_direction_pin, GPIO.OUT)
@@ -145,14 +151,43 @@ def setup_gpio_pins():
     GPIO.setup(left_motor_pwm_speed_pin, GPIO.OUT)
     left_motor_pwm = GPIO.PWM(left_motor_pwm_speed_pin, 1)
 
+    # Right
+    GPIO.output(left_motor_direction_pin, False)
+    GPIO.setup(right_motor_direction_pin, GPIO.OUT)
+    GPIO.output(right_motor_direction_pin, False)
     GPIO.setup(right_motor_pwm_speed_pin, GPIO.OUT)
     right_motor_pwm = GPIO.PWM(right_motor_pwm_speed_pin, 1)
-    time.sleep(1)
 
-    #Websocket server
-    start_server = websockets.serve(web_socket_message_input,"raspberrypi.local",8081)
+    logging.info("Motor drivers setup!")
+
+
+def setup_web_socket_server():
+    start_server = websockets.serve(web_socket_handler, "raspberrypi.local", 8081)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
+    logging.info("Websocket server started!")
+
+
+def setup():
+    gpio_pins_setup = False
+    GPIO.setmode(GPIO.BOARD)
+
+    # GPS
+    setup_gps()
+
+    # IMU
+    setup_imu()
+
+    # Sonar
+    setup_sonar()
+
+    # Motor Drivers
+    setup_motor_drivers()
+
+    # Web Socket Server
+    setup_web_socket_server()
+
+    logging.info("Setup complete!")
 
     return gpio_pins_setup
 
@@ -181,149 +216,142 @@ def setupLogging():
     return
 
 
-def check_stop_button():
-    button_pressed = False
-    if not (GPIO.input(stop_button_input_pin)):
-        button_pressed = True
-    return button_pressed
-
-
-def setMotorSpeed(isLeft, perc):
-    if isLeft:
-        if perc is 0 and is_Moving:
+def setMotorSpeed(is_left, percent):
+    logging.info("Set motor speed to " + percent + "%!")
+    if is_left:
+        if percent is 0 and is_moving:
             left_motor_pwm.stop()
-        elif perc > 0 and not is_Moving:
+        elif percent > 0 and not is_moving:
             left_motor_pwm.start(50)
-        if not dir_Left or not dir_Right:
-            left_motor_pwm.ChangeFrequency(perc * max_pwm)
+        if not dir_left or not dir_right:
+            left_motor_pwm.ChangeFrequency(percent * max_pwm)
         else:
-            left_motor_pwm.ChangeFrequency(perc * max_turn_pwm)
+            left_motor_pwm.ChangeFrequency(percent * max_turn_pwm)
     else:
-        if perc is 0 and is_Moving:
+        if percent is 0 and is_moving:
             right_motor_pwm.stop()
-        elif perc > 0 and not is_Moving:
+        elif percent > 0 and not is_moving:
             right_motor_pwm.start(50)
-        if not dir_Left or not dir_Right:
-            right_motor_pwm.ChangeFrequency(perc * max_pwm)
+        if not dir_left or not dir_right:
+            right_motor_pwm.ChangeFrequency(percent * max_pwm)
         else:
-            right_motor_pwm.ChangeFrequency(perc * max_turn_pwm)
+            right_motor_pwm.ChangeFrequency(percent * max_turn_pwm)
 
 
-def set_motor_direction(isLeft, forw):
-    if isLeft:
-        GPIO.output(left_motor_direction_pin, forw)
+def set_motor_direction(is_left, forward):
+    if is_left:
+        GPIO.output(left_motor_direction_pin, forward)
     else:
-        GPIO.output(right_motor_direction_pin, not forw)
+        GPIO.output(right_motor_direction_pin, not forward)
 
 
 def set_proper_direction():
-    global dir_Left, dir_Backward, dir_Forward, dir_Right
-    if moving_Forward and not dir_Forward:
+    global dir_left, dir_backward, dir_forward, dir_right
+    if moving_forward and not dir_forward:
+        logging.info("Going forward!")
         set_motor_direction(True, True)
         set_motor_direction(False, True)
-        dir_Forward = True
-        dir_Left = False
-        dir_Right = False
-        dir_Backward = False
-    if moving_Left and not dir_Left:
+        dir_forward = True
+        dir_left = False
+        dir_right = False
+        dir_backward = False
+    if moving_left and not dir_left:
+        logging.info("Going left!")
         set_motor_direction(True, False)
         set_motor_direction(False, True)
-        dir_Left = True
-        dir_Forward = False
-        dir_Right = False
-        dir_Backward = False
-    if moving_Right and not dir_Right:
+        dir_left = True
+        dir_forward = False
+        dir_right = False
+        dir_backward = False
+    if moving_right and not dir_right:
+        logging.info("Going right!")
         set_motor_direction(True, True)
         set_motor_direction(False, False)
-        dir_Right = True
-        dir_Left = False
-        dir_Forward = False
-        dir_Backward = False
-    if moving_Backward and not dir_Backward:
+        dir_right = True
+        dir_left = False
+        dir_forward = False
+        dir_backward = False
+    if moving_backward and not dir_backward:
+        logging.info("Going backward!")
         set_motor_direction(True, False)
         set_motor_direction(False, False)
-        dir_Backward = True
-        dir_Left = False
-        dir_Right = False
-        dir_Forward = False
+        dir_backward = True
+        dir_left = False
+        dir_right = False
+        dir_forward = False
 
 
 def is_proper_direction():
-    if moving_Forward and not dir_Forward:
+    if moving_forward and not dir_forward:
         return False
-    if moving_Left and not dir_Left:
+    if moving_left and not dir_left:
         return False
-    if moving_Right and not dir_Right:
+    if moving_right and not dir_right:
         return False
-    if moving_Backward and not dir_Backward:
+    if moving_backward and not dir_backward:
         return False
     return True
 
 
 def check_constant_speed():
-    accel_data = accel_gyro.get_accelerometer_data()
+    accel_data = accelerometer_gyroscope.get_accelerometer_data()
     ACCx = accel_data.x
     ACCy = accel_data.y
     ACCz = accel_data.z
-    accXnorm = (ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)) + accel_offset_x
-    accYnorm = (ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)) + accel_offset_y
-    if math.fabs(accXnorm) < accel_threshold and math.fabs(accYnorm) < accel_threshold:
+    accXnorm = (ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)) + accelerometer_offset_x
+    accYnorm = (ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)) + accelerometer_offset_y
+    if math.fabs(accXnorm) < accelerometer_threshold and math.fabs(accYnorm) < accelerometer_threshold:
         return True
     else:
         return False
 
 
-magnetometer = LIS3MDL()
-accel_gyro = LSM6DS33()
 setupLogging()
-setup_gpio_pins()
+setup()
 setup_gps()
-get_position_and_direction()
+get_position()
 set_motor_direction(True, True)
 set_motor_direction(True, True)
-heading_calculator = Heading_Calculator(accel_gyro, magnetometer)
-dir_Forward = True
-moving_Forward = True
 
 while True:
 
     # Remote Stop Button
-    if stop_Everything and is_Moving:
+    if stop_everything and is_moving:
         setMotorSpeed(True, 0)
         setMotorSpeed(False, 0)
-        is_Moving = False
+        is_moving = False
 
     # Distance Sensor
-    if get_distance_ahead() <= 4 and is_Moving:
+    if get_sonar_distance() <= 4 and is_moving:
         setMotorSpeed(True, 0)
         setMotorSpeed(False, 0)
-        is_Moving = False
+        is_moving = False
 
     # if direction isn't proper, then stop moving change direction and start moving
     if not is_proper_direction():
-        if is_Moving:
+        if is_moving:
             setMotorSpeed(True, 0)
             setMotorSpeed(False, 0)
-            is_Moving = False
+            is_moving = False
         set_proper_direction()
-        #while not check_constant_speed():
-            #time.sleep(loop_Delay / 1000)
+        # while not check_constant_speed():
+        # time.sleep(loop_Delay / 1000)
         setMotorSpeed(True, 1)
         setMotorSpeed(False, 1)
-        is_Moving = True
+        is_moving = True
 
     # If distance is fine and remote button isn't pressed and not moving, then start moving
-    if get_distance_ahead() > 4 and not is_Moving and not stop_Everything \
-            and (moving_Right or moving_Left or moving_Forward or moving_Backward):
+    if get_sonar_distance() > 4 and not is_moving and not stop_everything \
+            and (moving_right or moving_left or moving_forward or moving_backward):
         setMotorSpeed(True, 1)
         setMotorSpeed(False, 1)
-        is_Moving = True
+        is_moving = True
 
     # if not supposed to be moving, but is moving then stop moving
-    if not moving_Backward and not moving_Forward and not moving_Left and not moving_Right and is_Moving:
+    if not moving_backward and not moving_forward and not moving_left and not moving_right and is_moving:
         setMotorSpeed(True, 0)
         setMotorSpeed(False, 0)
-        is_Moving = False
+        is_moving = False
 
     time.sleep(loop_Delay / 1000)
     break

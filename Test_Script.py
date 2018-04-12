@@ -7,15 +7,15 @@ import RPi.GPIO as GPIO  # For the pi
 import gpsd
 
 # Action Variables
-moving_Left = False
-moving_Right = False
-moving_Forward = False
-moving_Backward = False
+moving_left = False
+moving_right = False
+moving_forward = False
+moving_backward = False
 
 # Current Value Variables
-current_Latitude = None
-current_Longitude = None
-current_Direction_Degrees = None
+current_latitude = None
+current_longitude = None
+current_direction_degrees = None
 current_Distance_Ahead = None
 
 # Pin Number Variables
@@ -37,7 +37,7 @@ json_Filename = "land_drone_JSON_file.JSON"
 
 # Misc Variables
 max_pwm = 20000
-stop_Everything = False
+stop_everything = False
 loop_Delay = 1  # How much time in milliseconds to wait after every loop
 
 
@@ -81,7 +81,7 @@ def read_json_file(json_filename):
 
 
 def set_variables_from_json_data(json_data):
-    global moving_Forward, moving_Backward, moving_Left, moving_Right, stop_Everything
+    global moving_forward, moving_backward, moving_left, moving_right, stop_everything
     moving_Forward = bool(json_data["moving_forward"])
     moving_Backward = bool(json_data["moving_backward"])
     moving_Right = bool(json_data["moving_right"])
@@ -91,7 +91,7 @@ def set_variables_from_json_data(json_data):
 
 def get_position_and_direction():
     got_current_position = False
-    global current_Latitude, current_Longitude, current_Direction_Degrees
+    global current_latitude, current_longitude, current_direction_degrees
     gps_packet = gpsd.get_current()
     print("Latitude: " + str(gps_packet.lat) + " Longitude: " + str(gps_packet.lon))
     return got_current_position
