@@ -57,7 +57,6 @@ sonar_frequency = 20
 max_pwm = 20000
 max_turn_pwm = 8000
 accelerometer_threshold = 0.05
-stop_everything = False
 accelerometer_offset_x = -0.007706830092610056
 accelerometer_offset_y = -0.9543302538970905
 
@@ -81,19 +80,17 @@ async def get_json_string():
         "current_longitude": current_longitude,
         "current_direction_degrees": current_direction_degrees,
         "current_distance_ahead": current_distance_ahead,
-        "stop_everything": stop_everything
     }
     return json.dumps(data)
 
 
 async def set_json_variables(json_string):
-    global moving_forward, moving_backward, moving_left, moving_right, stop_everything
+    global moving_forward, moving_backward, moving_left, moving_right
     json_data = json.loads(json_string)
     moving_forward = bool(json_data["moving_forward"])
     moving_backward = bool(json_data["moving_backward"])
     moving_right = bool(json_data["moving_right"])
     moving_left = bool(json_data["moving_left"])
-    stop_everything = bool(json_data["stop_everything"])
     return
 
 
@@ -343,12 +340,6 @@ async def main_loop():
 
     time_start = time.time()
 
-    # Remote Stop Button
-    if stop_everything and is_moving:
-        await set_motor_speed(True, 0)
-        await set_motor_speed(False, 0)
-        is_moving = False
-
     # Distance Sensor
     if await get_sonar_distance() <= 4 and is_moving:
         await set_motor_speed(True, 0)
@@ -369,7 +360,7 @@ async def main_loop():
         is_moving = True
 
     # If distance is fine and remote button isn't pressed and not moving, then start moving
-    if await get_sonar_distance() > 4 and not is_moving and not stop_everything \
+    if await get_sonar_distance() > 4 and not is_moving \
             and (moving_right or moving_left or moving_forward or moving_backward):
         await set_motor_speed(True, 1)
         await set_motor_speed(False, 1)
