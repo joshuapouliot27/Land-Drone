@@ -221,8 +221,8 @@ def ramp_pwm(end):
     step_freq = 1000
     min_freq = 1000
     if beginning > end:
-        steps = math.fabs((beginning-end) // 1000)
-        left_over = math.fabs((beginning-end)) - steps * 1000
+        steps = math.fabs((beginning-end) // step_max)
+        left_over = math.fabs((beginning-end)) - steps * step_max
         for x in range(0, int(steps)):
             new_pwm = current_pwm - step_max
             set_pwm_freq(False, new_pwm)
@@ -236,8 +236,8 @@ def ramp_pwm(end):
         time.sleep(1 / step_freq)
         print("final pwm: "+str(new_pwm))
     else:
-        steps = math.fabs((beginning - end) // 1000)
-        left_over = math.fabs((beginning - end)) - steps * 1000
+        steps = math.fabs((beginning - end) // step_max)
+        left_over = math.fabs((beginning - end)) - steps * step_max
         for x in range(0, int(steps)):
             new_pwm = current_pwm + step_max
             set_pwm_freq(False, new_pwm)
