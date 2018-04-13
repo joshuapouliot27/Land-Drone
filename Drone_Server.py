@@ -19,17 +19,19 @@ moving_left = False
 moving_right = False
 moving_forward = False
 moving_backward = False
-current_latitude = None
-current_longitude = None
-current_direction_degrees = None
-current_distance_ahead = None
 
 # Current Value Variables
+current_latitude: float = None
+current_longitude: float = None
+current_direction_degrees: float = None
+current_distance_ahead: float = None
 dir_left = False
 dir_right = False
 dir_forward = False
 dir_backward = False
 is_moving = False
+current_left_pwm = 0
+current_right_pwm = 0
 
 # Pin Number Variables
 left_motor_direction_pin = 15
@@ -40,13 +42,13 @@ sonar_trig_pin = 18
 sonar_echo_pin = 22
 
 # GPIO variables
-left_motor_pwm = None
-right_motor_pwm = None
+left_motor_pwm: GPIO.PWM = None
+right_motor_pwm: GPIO.PWM = None
 
 # IMU Variables
-magnetometer = None
-accelerometer_gyroscope = None
-heading_calculator = None
+magnetometer: LIS3MDL = None
+accelerometer_gyroscope: LSM6DS33 = None
+heading_calculator: Heading_Calculator = None
 
 # Frequency variables
 main_loop_frequency = 25
@@ -62,7 +64,6 @@ accelerometer_offset_y = -0.9543302538970905
 
 
 class Websocket_Server(WebSocket):
-
     def handleMessage(self):
         json = web_socket_handler(self.data)
         if json is not None:
@@ -171,7 +172,7 @@ def setup_motor_drivers():
 
 
 def setup():
-    setupLogging()
+    setup_logging()
 
     GPIO.setmode(GPIO.BOARD)
 
@@ -207,12 +208,32 @@ def setup_gps():
     logging.info("GPS has fix.")
 
 
-def setupLogging():
+def setup_logging():
     logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
                         filename="drone.log", level=logging.DEBUG)
 
 
-def set_motor_speed(is_left, percent):
+def ramp_pwm(motor_pwm: GPIO.PWM, beginning, end):
+    step_max_amount = 1000
+    steps = math.trunc(math.fabs(beginning - end) / step_max_amount)
+    left_over_pwm = math.fabs(beginning - end) - (steps * step_max_amount)
+    if beginning > end:
+        change = step_max_amount
+    else:
+        change = -step_max_amount
+        left_over_pwm *= -1
+    prev_freq = beginning
+    for x in range(1, steps):
+        motor_pwm.ChangeFrequency(prev_freq + change)
+        prev_freq += change
+        time.sleep(.1)
+    motor_pwm.ChangeFrequency(prev_freq + left_over_pwm)
+    prev_freq += left_over_pwm
+    time.sleep(.1)
+
+
+def set_motor_speed(is_left, percent, emergency=False):
+    global current_left_pwm, current_right_pwm
     logging.info("Set motor speed to " + str(percent) + "%!")
     if is_left:
         if percent is 0 and is_moving:
@@ -221,9 +242,19 @@ def set_motor_speed(is_left, percent):
             left_motor_pwm.start(50)
 
         if (not dir_left or not dir_right) and percent > 0:
-            left_motor_pwm.ChangeFrequency(percent * max_pwm)
+            end_freq = percent * max_pwm
+            if emergency:
+                left_motor_pwm.ChangeFrequency(end_freq)
+            else:
+                ramp_pwm(left_motor_pwm, current_left_pwm, end_freq)
+            current_left_pwm = end_freq
         elif percent > 0:
-            left_motor_pwm.ChangeFrequency(percent * max_turn_pwm)
+            end_freq = percent * max_turn_pwm
+            if emergency:
+                right_motor_pwm.ChangeFrequency(end_freq)
+            else:
+                ramp_pwm(right_motor_pwm, current_left_pwm, end_freq)
+            current_left_pwm = end_freq
     else:
         if percent is 0 and is_moving:
             right_motor_pwm.stop()
@@ -231,9 +262,19 @@ def set_motor_speed(is_left, percent):
             right_motor_pwm.start(50)
 
         if (not dir_left or not dir_right) and percent > 0:
-            right_motor_pwm.ChangeFrequency(percent * max_pwm)
+            end_freq = percent * max_pwm
+            if emergency:
+                right_motor_pwm.ChangeFrequency(end_freq)
+            else:
+                ramp_pwm(right_motor_pwm, current_right_pwm, end_freq)
+            current_right_pwm = end_freq
         elif percent > 0:
-            right_motor_pwm.ChangeFrequency(percent * max_turn_pwm)
+            end_freq = percent * max_turn_pwm
+            if emergency:
+                right_motor_pwm.ChangeFrequency(end_freq)
+            else:
+                ramp_pwm(right_motor_pwm, current_right_pwm, end_freq)
+            current_right_pwm = end_freq
 
 
 def set_motor_direction(is_left, forward):
@@ -396,7 +437,7 @@ setup()
 print("Setup complete!")
 try:
     thread = Background_Thread(web_socket_loop)
-    #web_socket_loop()
+    # web_socket_loop()
     main_loop()
 except:
     all_stop = True
