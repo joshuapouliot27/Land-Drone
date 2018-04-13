@@ -214,6 +214,7 @@ def setup_logging():
 
 
 def ramp_pwm(is_left, end):
+    print("ramping pwm, isleft: "+str(is_left)+"; end freq: "+str(end))
     step_max_amount = 1000
     min_freq = 1000
     change_freq = 10
@@ -239,12 +240,14 @@ def ramp_pwm(is_left, end):
         set_pwm_freq(is_left, prev_freq + change)
         prev_freq += change
         time.sleep(1 / change_freq)
-    set_pwm_freq(is_left, prev_freq + left_over_pwm)
-    prev_freq += left_over_pwm
-    time.sleep(1 / change_freq)
+    else:
+        set_pwm_freq(is_left, prev_freq + left_over_pwm)
+        prev_freq += left_over_pwm
+        time.sleep(1 / change_freq)
 
 
 def set_pwm_freq(is_left, freq):
+    print("setting pwm, isleft: " + str(is_left) + "; freq: " + str(freq))
     global current_right_pwm, current_left_pwm
     if is_left:
         if freq is 0 and is_moving:
@@ -412,8 +415,8 @@ def main_loop():
         # Distance Sensor
         if get_sonar_distance() <= 4 and is_moving:
             print("obstacle in the way, stopping")
-            set_motor_speed(True, 0)
-            set_motor_speed(False, 0)
+            set_motor_speed(True, 0, True)
+            set_motor_speed(False, 0, True)
             is_moving = False
 
         # if direction isn't proper, then stop moving change direction and start moving
