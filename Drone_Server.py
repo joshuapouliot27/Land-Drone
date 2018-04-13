@@ -445,6 +445,7 @@ try:
     # web_socket_loop()
     main_loop()
 except Exception as error:
+    set_motor_speed(0, True)
     all_stop = True
     GPIO.cleanup()
     print("ERROR: " + str(error))
