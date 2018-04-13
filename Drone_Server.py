@@ -168,6 +168,7 @@ def setup_motor_drivers():
 def setup_web_socket_server():
     start_server = websockets.serve(web_socket_handler, "raspberrypi.local", 8081)
     asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
     logging.info("Websocket server started!")
 
 
