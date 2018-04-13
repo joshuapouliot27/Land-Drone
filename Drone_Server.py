@@ -213,35 +213,26 @@ def setup_logging():
 
 
 def ramp_pwm(end):
-    print("ramping pwm; end freq: "+str(end))
-    step_max_amount = 1000
-    min_freq = 1000
-    change_freq = 10
-
+    global current_pwm
     beginning = current_pwm
-
-    if beginning <= min_freq:
-        beginning = min_freq
-        set_pwm_freq(False, beginning)
-        set_pwm_freq(True, beginning)
-        time.sleep(1 / change_freq)
-    steps = math.trunc(math.fabs(beginning - end) / step_max_amount)
-    left_over_pwm = math.fabs(beginning - end) - (steps * step_max_amount)
-    if beginning < end:
-        change = step_max_amount
+    step_max = 1000
+    min_freq = 1000
+    if beginning > end:
+        steps = math.fabs(math.trunc((beginning-end) / 1000))
+        left_over = math.fabs((beginning-end)) - steps * 1000
+        for x in range(1,steps):
+            set_pwm_freq(current_pwm - step_max)
+            current_pwm-=step_max
+        set_pwm_freq(current_pwm - left_over)
+        current_pwm -= left_over
     else:
-        change = -step_max_amount
-        left_over_pwm *= -1
-    prev_freq = beginning
-    for x in range(1, steps):
-        set_pwm_freq(True, prev_freq + change)
-        set_pwm_freq(False, prev_freq + change)
-        prev_freq += change
-        time.sleep(1 / change_freq)
-    set_pwm_freq(True, prev_freq + left_over_pwm)
-    set_pwm_freq(False, prev_freq + left_over_pwm)
-    prev_freq += left_over_pwm
-    time.sleep(1 / change_freq)
+        steps = math.fabs(math.trunc((beginning - end) / 1000))
+        left_over = math.fabs((beginning - end)) - steps * 1000
+        for x in range(1, steps):
+            set_pwm_freq(current_pwm + step_max)
+            current_pwm += step_max
+        set_pwm_freq(current_pwm + left_over)
+        current_pwm += left_over
 
 
 def set_pwm_freq(is_left, freq):
