@@ -1,5 +1,4 @@
-import asyncio
-import threading
+from multiprocessing import Process
 
 import gpsd
 import json
@@ -401,17 +400,16 @@ def main_loop():
 setup()
 print("Setup complete!")
 try:
-    threads = set()
-    threads.add(threading.Thread(target=web_socket_loop))
-    threads.add(threading.Thread(target=gps_loop))
-    threads.add(threading.Thread(target=sonar_loop))
-    threads.add(threading.Thread(target=imu_loop))
-    threads.add(threading.Thread(target=main_loop))
-    for thread in threads:
+    processes = set()
+    processes.add(Process(target=web_socket_loop))
+    processes.add(Process(target=gps_loop))
+    processes.add(Process(target=sonar_loop))
+    processes.add(Process(target=imu_loop))
+    processes.add(Process(target=main_loop))
+    for thread in processes:
         thread.start()
         thread.join()
 except:
     all_stop = True
-    asyncio.get_event_loop().stop()
     GPIO.cleanup()
     print("cleaned up!")
