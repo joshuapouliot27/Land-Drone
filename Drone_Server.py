@@ -213,12 +213,11 @@ def setup_logging():
 
 def ramp_pwm(end):
     global current_pwm
-    print("ramping pwm from "+str(current_pwm)+" to "+str(end))
     beginning = current_pwm
     if beginning is end:
         return
     step_max = 500
-    step_freq = (step_max/10000)
+    step_freq = 1/(step_max/10000)
     min_freq = 1000
     if beginning > end:
         steps = math.fabs((beginning-end) // step_max)
@@ -254,7 +253,6 @@ def ramp_pwm(end):
 
 def set_pwm_freq(is_left, freq):
     global current_pwm
-    print("going from "+str(current_pwm)+" to "+str(freq)+" current_pwm > 0: "+str((current_pwm > 0))+" freq <= 0"+str(freq <= 0))
     if freq is current_pwm:
         return
     if is_left:
