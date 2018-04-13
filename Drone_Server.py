@@ -218,7 +218,7 @@ def ramp_pwm(end):
     if beginning is end:
         return
     step_max = 500
-    step_freq = 20
+    step_freq = (step_max/10000)
     min_freq = 1000
     if beginning > end:
         steps = math.fabs((beginning-end) // step_max)
