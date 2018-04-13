@@ -7,6 +7,7 @@ import math
 import time
 
 import RPi.GPIO as GPIO
+from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 from websocket_server import WebsocketServer
 
 from Background_Thread import Background_Thread
@@ -14,7 +15,6 @@ from Heading_Calculator import Heading_Calculator
 from LIS3MDL import LIS3MDL
 from LSM6DS33 import LSM6DS33
 
-# Web Variables
 moving_left = False
 moving_right = False
 moving_forward = False
@@ -23,7 +23,6 @@ current_latitude = None
 current_longitude = None
 current_direction_degrees = None
 current_distance_ahead = None
-WebVariables = Queue()
 
 # Current Value Variables
 dir_left = False
@@ -62,16 +61,25 @@ accelerometer_offset_x = -0.007706830092610056
 accelerometer_offset_y = -0.9543302538970905
 
 
-def web_socket_handler(client, server, message):
+class Websocket_Server(WebSocket):
+
+    def handleMessage(self):
+        json = web_socket_handler(self.data)
+        if json is not None:
+            self.sendMessage(json)
+
+
+def web_socket_handler(message):
     print(str(message))
     if "return" in message:
         json_data = get_json_string()
-        server.send(json_data)
+        return json_data
     else:
         set_json_variables(message)
+        return None
 
 
-async def get_json_string():
+def get_json_string():
     data = {
         "moving_left": moving_left,
         "moving_right": moving_right,
@@ -85,7 +93,7 @@ async def get_json_string():
     return json.dumps(data)
 
 
-async def set_json_variables(json_string):
+def set_json_variables(json_string):
     global moving_forward, moving_backward, moving_left, moving_right
     json_data = json.loads(json_string)
     moving_forward = bool(json_data["moving_forward"])
@@ -333,11 +341,8 @@ def imu_loop():
 
 
 def web_socket_loop():
-    server = WebsocketServer(8081)
-    server.set_fn_message_received(web_socket_handler)
-    if trace:
-        print("starting websocket server...")
-    server.run_forever()
+    server = SimpleWebSocketServer('', 8081, Websocket_Server)
+    server.serveforever()
 
 
 def main_loop():
