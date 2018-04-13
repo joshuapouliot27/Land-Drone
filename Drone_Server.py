@@ -216,6 +216,8 @@ def ramp_pwm(end):
     global current_pwm
     print("ramping pwm from "+str(current_pwm)+" to "+str(end))
     beginning = current_pwm
+    if beginning is end:
+        return
     step_max = 1000
     min_freq = 1000
     if beginning > end:
@@ -246,6 +248,8 @@ def ramp_pwm(end):
 
 def set_pwm_freq(is_left, freq):
     global current_pwm
+    if freq is current_pwm:
+        return
     print("setting pwm, isleft: " + str(is_left) + ", from "+str(current_pwm)+" to " + str(freq))
     if is_left:
         if freq is 0 and is_moving:
@@ -261,14 +265,11 @@ def set_pwm_freq(is_left, freq):
     else:
         if freq is 0 and is_moving:
             right_motor_pwm.stop()
-            current_pwm = 0
         elif 1000 <= freq <= 20000 and is_moving:
             right_motor_pwm.ChangeFrequency(freq)
-            current_pwm = freq
         elif 1000 <= freq <= 20000 and not is_moving:
             right_motor_pwm.start(50)
             right_motor_pwm.ChangeFrequency(freq)
-            current_pwm = freq
 
 
 def set_motor_speed(percent, emergency=False):
@@ -277,8 +278,8 @@ def set_motor_speed(percent, emergency=False):
     if emergency:
         if not dir_left or not dir_right:
             end_freq = percent * max_pwm
-            set_pwm_freq(True, end_freq)
             set_pwm_freq(False, end_freq)
+            set_pwm_freq(True, end_freq)
         else:
             end_freq = percent * max_turn_pwm
             set_pwm_freq(False, end_freq)
