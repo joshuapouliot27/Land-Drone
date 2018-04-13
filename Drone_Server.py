@@ -437,11 +437,9 @@ def main_loop():
             print("stopping motion")
             set_motor_speed(0)
             is_moving = False
-
-
-setup()
-print("Setup complete!")
 try:
+    setup()
+    print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
     # web_socket_loop()
     main_loop()
