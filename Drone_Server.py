@@ -6,9 +6,10 @@ import json
 import logging
 import math
 import time
-import websockets
+import websocket
 
 import RPi.GPIO as GPIO
+from websocket_server import WebsocketServer
 
 from Heading_Calculator import Heading_Calculator
 from LIS3MDL import LIS3MDL
@@ -63,15 +64,12 @@ accelerometer_offset_x = -0.007706830092610056
 accelerometer_offset_y = -0.9543302538970905
 
 
-async def web_socket_handler(web_socket, path):
-    async for message in web_socket:
-        if all_stop:
-            yield
-        if "return" in message:
-            json_data = await get_json_string()
-            await web_socket.send(json_data)
-        else:
-            await set_json_variables(message)
+async def web_socket_handler(client, server, message):
+    if "return" in message:
+        json_data = await get_json_string()
+        web_socket.send(json_data)
+    else:
+        set_json_variables(message)
 
 
 async def get_json_string():
@@ -168,9 +166,9 @@ def setup_motor_drivers():
 
 
 def setup_web_socket_server():
-    start_server = websockets.serve(web_socket_handler, "raspberrypi.local", 8081)
-    asyncio.get_event_loop().run_until_complete(start_server)
-    logging.info("Websocket server started!")
+    server = WebsocketServer(8081)
+    server.set_fn_message_received(web_socket_handler)
+    server.run_forever()
 
 
 def setup():
@@ -352,7 +350,6 @@ def imu_loop():
 
 def web_socket_loop():
     setup_web_socket_server()
-    asyncio.get_event_loop().run_forever()
 
 
 def main_loop():
@@ -401,12 +398,13 @@ def main_loop():
 setup()
 print("Setup complete!")
 try:
+    web_socket = websocket.WebSocketApp("")
     threads = set()
     threads.add(threading.Thread(target=gps_loop))
     threads.add(threading.Thread(target=sonar_loop))
     threads.add(threading.Thread(target=imu_loop))
     threads.add(threading.Thread(target=main_loop))
-    threads.add(threading.Thread(target=web_socket_loop))
+    #threads.add(threading.Thread(target=web_socket_loop))
     for thread in threads:
         thread.start()
         thread.join()
