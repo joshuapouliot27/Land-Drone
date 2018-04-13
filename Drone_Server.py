@@ -55,6 +55,7 @@ imu_frequency = 50
 sonar_frequency = 20
 
 # Misc Variables
+trace = True
 all_stop = False
 max_pwm = 20000
 max_turn_pwm = 8000
@@ -312,6 +313,8 @@ def get_true_heading():
 
 def sonar_loop():
     while True:
+        if trace:
+            print("sonar loop")
         if all_stop:
             break
         time_start = time.time()
@@ -324,6 +327,8 @@ def gps_loop():
     while True:
         if all_stop:
             break
+        if trace:
+            print("gps loop")
         time_start = time.time()
         get_position()
         time.sleep(only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
@@ -333,6 +338,8 @@ def imu_loop():
     while True:
         if all_stop:
             break
+        if trace:
+            print("imu loop")
         time_start = time.time()
         get_true_heading()
         time.sleep(only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
@@ -341,6 +348,8 @@ def imu_loop():
 def web_socket_loop():
     server = WebsocketServer(8081)
     server.set_fn_message_received(web_socket_handler)
+    if trace:
+        print("starting websocket server...")
     server.run_forever()
 
 
@@ -370,8 +379,9 @@ def main_loop():
             set_motor_speed(True, 1)
             set_motor_speed(False, 1)
             is_moving = True
-        print("can move: " + str(get_sonar_distance() > 4 and not is_moving \
-                                       and (moving_right or moving_left or moving_forward or moving_backward)))
+        if trace:
+            print("can move: " + str(get_sonar_distance() > 4 and not is_moving \
+                                     and (moving_right or moving_left or moving_forward or moving_backward)))
         # If distance is fine and remote button isn't pressed and not moving, then start moving
         if get_sonar_distance() > 4 and not is_moving \
                 and (moving_right or moving_left or moving_forward or moving_backward):
@@ -386,6 +396,7 @@ def main_loop():
             is_moving = False
 
         time.sleep(only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
+
 
 setup()
 print("Setup complete!")
