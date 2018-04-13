@@ -254,7 +254,7 @@ def ramp_pwm(end):
 
 def set_pwm_freq(is_left, freq):
     global current_pwm
-    print("going from "+str(current_pwm)+" to "+str(freq)+" worth of stop: "+str((freq is 0) and (current_pwm > 0)))
+    print("going from "+str(current_pwm)+" to "+str(freq)+" current_pwm > 0: "+str((current_pwm > 0))+"freq is 0"+str(freq is 0))
     if freq is current_pwm:
         return
     if is_left:
