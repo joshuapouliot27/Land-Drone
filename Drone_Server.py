@@ -358,12 +358,14 @@ def main_loop():
 
         # Distance Sensor
         if get_sonar_distance() <= 4 and is_moving:
+            print("obstacle in the way, stopping")
             set_motor_speed(True, 0)
             set_motor_speed(False, 0)
             is_moving = False
 
         # if direction isn't proper, then stop moving change direction and start moving
         if not is_proper_direction():
+            print("changing proper direction")
             if is_moving:
                 set_motor_speed(True, 0)
                 set_motor_speed(False, 0)
@@ -374,20 +376,17 @@ def main_loop():
             set_motor_speed(True, 1)
             set_motor_speed(False, 1)
             is_moving = True
-        #for debugging
-        if trace:
-            print("can move: " + str(get_sonar_distance() > 4 and not is_moving \
-                                     and (moving_right or moving_left or moving_forward or moving_backward)))
-
         # If distance is fine and remote button isn't pressed and not moving, then start moving
         if get_sonar_distance() > 4 and not is_moving \
                 and (moving_right or moving_left or moving_forward or moving_backward):
+            print("started moving")
             set_motor_speed(True, 1)
             set_motor_speed(False, 1)
             is_moving = True
 
         # if not supposed to be moving, but is moving then stop moving
         if not moving_backward and not moving_forward and not moving_left and not moving_right and is_moving:
+            print("stopping motion")
             set_motor_speed(True, 0)
             set_motor_speed(False, 0)
             is_moving = False
