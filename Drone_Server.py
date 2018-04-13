@@ -430,6 +430,7 @@ def main_loop():
             # while not await check_constant_speed():
             # time.sleep(loop_Delay / 1000)
             set_motor_speed(1)
+
         # If distance is fine and remote button isn't pressed and not moving, then start moving
         if get_sonar_distance() > 1 and current_pwm <= 0 \
                 and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
@@ -437,13 +438,16 @@ def main_loop():
             set_motor_speed(1)
 
         # if not supposed to be moving, but is moving then stop moving
-        if not moving_backward and not moving_forward and not moving_left and not moving_right and current_pwm > 0:
+        if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) and current_pwm > 0:
             print("stopping motion")
             set_motor_speed(0)
 try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
+    #thread2 = Background_Thread(gps_loop())
+    #thread3 = Background_Thread(sonar_loop())
+    #thread4 = Background_Thread(imu_loop())
     # web_socket_loop()
     main_loop()
 except Exception as error:
