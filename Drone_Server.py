@@ -334,7 +334,7 @@ def imu_loop():
 def web_socket_loop():
     server = WebsocketServer(8081)
     server.set_fn_message_received(web_socket_handler)
-    if trace_loop:
+    if trace:
         print("starting websocket server...")
     server.run_forever()
 
