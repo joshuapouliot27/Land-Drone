@@ -310,7 +310,7 @@ def get_true_heading():
 
 
 def sonar_loop():
-    if trace:
+    if trace_loop:
         print("sonar loop")
     time_start = time.time()
     global current_distance_ahead
