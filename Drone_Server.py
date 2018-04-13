@@ -215,6 +215,12 @@ def setup_logging():
 
 def ramp_pwm(motor_pwm: GPIO.PWM, beginning, end):
     step_max_amount = 1000
+    min_freq = 1000
+    change_freq = 10
+    if beginning <= min_freq:
+        beginning = min_freq
+        motor_pwm.ChangeFrequency(beginning)
+        time.sleep(1/change_freq)
     steps = math.trunc(math.fabs(beginning - end) / step_max_amount)
     left_over_pwm = math.fabs(beginning - end) - (steps * step_max_amount)
     if beginning > end:
@@ -226,10 +232,10 @@ def ramp_pwm(motor_pwm: GPIO.PWM, beginning, end):
     for x in range(1, steps):
         motor_pwm.ChangeFrequency(prev_freq + change)
         prev_freq += change
-        time.sleep(.1)
+        time.sleep(1/change_freq)
     motor_pwm.ChangeFrequency(prev_freq + left_over_pwm)
     prev_freq += left_over_pwm
-    time.sleep(.1)
+    time.sleep(1/change_freq)
 
 
 def set_motor_speed(is_left, percent, emergency=False):
