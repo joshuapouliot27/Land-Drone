@@ -29,6 +29,7 @@ dir_left = False
 dir_right = False
 dir_forward = False
 dir_backward = False
+stop_everything = False
 current_pwm = 0
 
 # Pin Number Variables
@@ -87,6 +88,7 @@ def get_json_string():
         "current_longitude": current_longitude,
         "current_direction_degrees": current_direction_degrees,
         "current_distance_ahead": current_distance_ahead,
+        "stop_everything": stop_everything
     }
     return json.dumps(data)
 
@@ -98,6 +100,7 @@ def set_json_variables(json_string):
     moving_backward = bool(json_data["moving_backward"])
     moving_right = bool(json_data["moving_right"])
     moving_left = bool(json_data["moving_left"])
+    stop_everything = bool(json_data["stop_everything"])
 
 
 def get_position():
@@ -218,7 +221,6 @@ def ramp_pwm(end):
         return
     step_max = 500
     step_freq = 1/(step_max/10000)
-    min_freq = 500
     if beginning > end:
         steps = math.fabs((beginning-end) // step_max)
         left_over = math.fabs((beginning-end)) - steps * step_max
@@ -258,30 +260,22 @@ def set_pwm_freq(is_left, freq):
     if is_left:
         if (freq <= 0) and (current_pwm > 0):
             left_motor_pwm.stop()
-            print("stopping left")
             current_pwm = 0
         elif 500 <= freq <= 20000 and current_pwm > 0:
             left_motor_pwm.ChangeFrequency(freq)
-            print("change pwm from " + str(current_pwm) + " to " + str(freq))
             current_pwm = freq
         elif 500 <= freq <= 20000 and current_pwm <= 0:
             left_motor_pwm.start(50)
-            print("starting left")
             left_motor_pwm.ChangeFrequency(freq)
-            print("change pwm from " + str(current_pwm) + " to " + str(freq))
             current_pwm = freq
     else:
         if (freq <= 0) and (current_pwm > 0):
             right_motor_pwm.stop()
-            print("stopping right")
         elif 500 <= freq <= 20000 and current_pwm > 0:
             right_motor_pwm.ChangeFrequency(freq)
-            print("change pwm from " + str(current_pwm) + " to " + str(freq))
         elif 500 <= freq <= 20000 and current_pwm <= 0:
             right_motor_pwm.start(50)
-            print("starting right")
             right_motor_pwm.ChangeFrequency(freq)
-            print("change pwm from " + str(current_pwm) + " to " + str(freq))
 
 
 def set_motor_speed(percent, emergency=False):
@@ -423,8 +417,8 @@ def main_loop():
         sonar_loop()
 
         # Distance Sensor
-        if get_sonar_distance() <= 1 and current_pwm > 0:
-            print("obstacle in the way, stopping")
+        if (stop_everything or get_sonar_distance() <= 1) and current_pwm > 0:
+            print("obstacle in the way or stop pressed, emergency stopping")
             set_motor_speed(0, True)
 
         # if direction isn't proper, then stop moving change direction and start moving
@@ -438,7 +432,7 @@ def main_loop():
             set_motor_speed(1)
         # If distance is fine and remote button isn't pressed and not moving, then start moving
         if get_sonar_distance() > 1 and current_pwm <= 0 \
-                and (moving_right or moving_left or moving_forward or moving_backward):
+                and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
             print("started moving")
             set_motor_speed(1)
 
