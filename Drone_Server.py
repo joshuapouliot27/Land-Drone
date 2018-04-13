@@ -392,7 +392,8 @@ def main_loop():
 setup()
 print("Setup complete!")
 try:
-    thread = Background_Thread(web_socket_loop)
+    #thread = Background_Thread(web_socket_loop)
+    web_socket_loop()
     main_loop()
 except:
     all_stop = True
