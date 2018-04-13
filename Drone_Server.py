@@ -277,10 +277,12 @@ def set_motor_speed(percent, emergency=False):
     if emergency:
         if not dir_left or not dir_right:
             end_freq = percent * max_pwm
-            set_pwm_freq(end_freq)
+            set_pwm_freq(True, end_freq)
+            set_pwm_freq(False, end_freq)
         else:
             end_freq = percent * max_turn_pwm
-            set_pwm_freq(end_freq)
+            set_pwm_freq(False, end_freq)
+            set_pwm_freq(True, end_freq)
     else:
         if not dir_left or not dir_right:
             end_freq = percent * max_pwm
@@ -409,7 +411,7 @@ def main_loop():
         sonar_loop()
 
         # Distance Sensor
-        if get_sonar_distance() <= 4 and is_moving:
+        if get_sonar_distance() <= 1 and is_moving:
             print("obstacle in the way, stopping")
             set_motor_speed(0, True)
             is_moving = False
@@ -426,7 +428,7 @@ def main_loop():
             set_motor_speed(1)
             is_moving = True
         # If distance is fine and remote button isn't pressed and not moving, then start moving
-        if get_sonar_distance() > 4 and not is_moving \
+        if get_sonar_distance() > 1 and not is_moving \
                 and (moving_right or moving_left or moving_forward or moving_backward):
             print("started moving")
             set_motor_speed(1)
