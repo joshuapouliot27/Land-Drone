@@ -222,20 +222,24 @@ def ramp_pwm(end):
         left_over = math.fabs((beginning-end)) - steps * 1000
         for x in range(1, int(steps)):
             new_pwm = current_pwm - step_max
-            set_pwm_freq(new_pwm)
+            set_pwm_freq(False, new_pwm)
+            set_pwm_freq(True, new_pwm)
             current_pwm = new_pwm
         new_pwm = current_pwm - left_over
-        set_pwm_freq(new_pwm)
+        set_pwm_freq(False, new_pwm)
+        set_pwm_freq(True, new_pwm)
         current_pwm = new_pwm
     else:
         steps = math.fabs((beginning - end) // 1000)
         left_over = math.fabs((beginning - end)) - steps * 1000
         for x in range(1, int(steps)):
             new_pwm = current_pwm + step_max
-            set_pwm_freq(new_pwm)
+            set_pwm_freq(False, new_pwm)
+            set_pwm_freq(True, new_pwm)
             current_pwm = new_pwm
         new_pwm = current_pwm + left_over
-        set_pwm_freq(new_pwm)
+        set_pwm_freq(False, new_pwm)
+        set_pwm_freq(True, new_pwm)
         current_pwm = new_pwm
 
 
