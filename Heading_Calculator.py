@@ -58,44 +58,44 @@ class Heading_Calculator:
         self.a = datetime.datetime.now()
         self.b = 0
 
-    async def readACCx(self):
+    def readACCx(self):
         return self.gyro_accel.get_accelerometer_data().x
 
-    async def readACCy(self):
+    def readACCy(self):
         return self.gyro_accel.get_accelerometer_data().y
 
-    async def readACCz(self):
+    def readACCz(self):
         return self.gyro_accel.get_accelerometer_data().z
 
-    async def readMAGx(self):
+    def readMAGx(self):
         return self.magn.get_magnetometer_data().x
 
-    async def readMAGy(self):
+    def readMAGy(self):
         return self.magn.get_magnetometer_data().y
 
-    async def readMAGz(self):
+    def readMAGz(self):
         return self.magn.get_magnetometer_data().z
 
-    async def readGYRx(self):
+    def readGYRx(self):
         return self.gyro_accel.get_gyroscope_data().x
 
-    async def readGYRy(self):
+    def readGYRy(self):
         return self.gyro_accel.get_gyroscope_data().y
 
-    async def readGYRz(self):
+    def readGYRz(self):
         return self.gyro_accel.get_gyroscope_data().z
 
-    async def calculate_tilt_compensated_heading(self):
+    def calculate_tilt_compensated_heading(self):
         # Read the accelerometer,gyroscope and magnetometer values
-        ACCx = await self.readACCx()
-        ACCy = await self.readACCy()
-        ACCz = await self.readACCz()
-        GYRx = await self.readGYRx()
-        GYRy = await self.readGYRy()
-        GYRz = await self.readGYRz()
-        MAGx = await self.readMAGx()
-        MAGy = await self.readMAGy()
-        MAGz = await self.readMAGz()
+        ACCx = self.readACCx()
+        ACCy = self.readACCy()
+        ACCz = self.readACCz()
+        GYRx = self.readGYRx()
+        GYRy = self.readGYRy()
+        GYRz = self.readGYRz()
+        MAGx = self.readMAGx()
+        MAGy = self.readMAGy()
+        MAGz = self.readMAGz()
 
         # Apply hard iron calibration to compass
         MAGx -= (self.magXmin + self.magXmax) / 2
