@@ -307,9 +307,9 @@ def set_motor_speed(percent, emergency=False):
 
 def set_motor_direction(is_left, forward):
     if is_left:
-        GPIO.output(left_motor_direction_pin, forward)
+        GPIO.output(left_motor_direction_pin, not forward)
     else:
-        GPIO.output(right_motor_direction_pin, not forward)
+        GPIO.output(right_motor_direction_pin, forward)
 
 
 def set_proper_direction():
