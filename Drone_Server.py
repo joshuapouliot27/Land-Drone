@@ -62,10 +62,10 @@ accelerometer_offset_x = -0.007706830092610056
 accelerometer_offset_y = -0.9543302538970905
 
 
-async def web_socket_handler(client, server, message):
+def web_socket_handler(client, server, message):
     print(str(message))
     if "return" in message:
-        json_data = await get_json_string()
+        json_data = get_json_string()
         server.send(json_data)
     else:
         set_json_variables(message)
