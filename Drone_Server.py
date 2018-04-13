@@ -399,6 +399,7 @@ def main_loop():
         time.sleep(only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
 
 setup()
+print("Setup complete!")
 try:
     threads = set()
     threads.add(threading.Thread(target=gps_loop))
