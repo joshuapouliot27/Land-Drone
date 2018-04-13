@@ -65,6 +65,8 @@ accelerometer_offset_y = -0.9543302538970905
 
 async def web_socket_handler(web_socket, path):
     async for message in web_socket:
+        if all_stop:
+            yield
         if "return" in message:
             json_data = await get_json_string()
             await web_socket.send(json_data)
@@ -348,6 +350,11 @@ def imu_loop():
         time.sleep(only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
 
 
+def web_socket_loop():
+    setup_web_socket_server()
+    asyncio.get_event_loop().run_forever()
+
+
 def main_loop():
     while True:
         if all_stop:
@@ -398,10 +405,10 @@ try:
     threads.add(threading.Thread(target=sonar_loop))
     threads.add(threading.Thread(target=imu_loop))
     threads.add(threading.Thread(target=main_loop))
+    threads.add(threading.Thread(target=web_socket_loop))
     for thread in threads:
         thread.start()
         thread.join()
-    asyncio.get_event_loop().run_forever()
 except:
     all_stop = True
     asyncio.get_event_loop().stop()
