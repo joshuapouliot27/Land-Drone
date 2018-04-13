@@ -253,28 +253,33 @@ def ramp_pwm(end):
 
 def set_pwm_freq(is_left, freq):
     global current_pwm
-    print("change pwm from "+str(current_pwm)+" to "+str(freq))
     if freq is current_pwm:
         return
     if is_left:
         if (freq <= 0) and (current_pwm > 0):
             left_motor_pwm.stop()
+            print("stopping left")
             current_pwm = 0
         elif 1000 <= freq <= 20000 and current_pwm > 0:
             left_motor_pwm.ChangeFrequency(freq)
+            print("change pwm from " + str(current_pwm) + " to " + str(freq))
             current_pwm = freq
         elif 1000 <= freq <= 20000 and current_pwm <= 0:
             left_motor_pwm.start(50)
             left_motor_pwm.ChangeFrequency(freq)
+            print("change pwm from " + str(current_pwm) + " to " + str(freq))
             current_pwm = freq
     else:
         if (freq <= 0) and (current_pwm > 0):
             right_motor_pwm.stop()
+            print("stopping right")
         elif 1000 <= freq <= 20000 and current_pwm > 0:
             right_motor_pwm.ChangeFrequency(freq)
+            print("change pwm from " + str(current_pwm) + " to " + str(freq))
         elif 1000 <= freq <= 20000 and current_pwm <= 0:
             right_motor_pwm.start(50)
             right_motor_pwm.ChangeFrequency(freq)
+            print("change pwm from " + str(current_pwm) + " to " + str(freq))
 
 
 def set_motor_speed(percent, emergency=False):
