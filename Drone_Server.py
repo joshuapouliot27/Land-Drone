@@ -399,7 +399,6 @@ try:
     threads.add(threading.Thread(target=sonar_loop))
     threads.add(threading.Thread(target=imu_loop))
     threads.add(threading.Thread(target=main_loop))
-    a = threading.Thread(target=main_loop)
     for thread in threads:
         thread.start()
         thread.join()
