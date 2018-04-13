@@ -203,7 +203,7 @@ def setup_gps():
 
 def setupLogging():
     logging.basicConfig(format='%(asctime)s; %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
-                        filename="drone.log", level=logging.INFO)
+                        filename="drone.log", level=logging.DEBUG)
 
 
 def set_motor_speed(is_left, percent):
