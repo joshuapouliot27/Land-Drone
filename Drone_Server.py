@@ -57,6 +57,7 @@ sonar_frequency = 20
 
 # Misc Variables
 trace = True
+trace_loop = False
 all_stop = False
 max_pwm = 20000
 max_turn_pwm = 8000
@@ -321,7 +322,7 @@ def sonar_loop():
 
 
 def gps_loop():
-    if trace:
+    if trace_loop:
         print("gps loop")
     time_start = time.time()
     get_position()
@@ -329,7 +330,7 @@ def gps_loop():
 
 
 def imu_loop():
-    if trace:
+    if trace_loop:
         print("imu loop")
     time_start = time.time()
     get_true_heading()
@@ -339,7 +340,7 @@ def imu_loop():
 def web_socket_loop():
     server = WebsocketServer(8081)
     server.set_fn_message_received(web_socket_handler)
-    if trace:
+    if trace_loop:
         print("starting websocket server...")
     server.run_forever()
 
@@ -347,6 +348,9 @@ def web_socket_loop():
 def main_loop():
     while True:
         global is_moving
+
+        if trace_loop:
+            print("Main loop")
 
         time_start = time.time()
 
