@@ -30,8 +30,7 @@ dir_right = False
 dir_forward = False
 dir_backward = False
 is_moving = False
-current_left_pwm = 0
-current_right_pwm = 0
+current_pwm = 0
 
 # Pin Number Variables
 left_motor_direction_pin = 15
@@ -213,20 +212,18 @@ def setup_logging():
                         filename="drone.log", level=logging.DEBUG)
 
 
-def ramp_pwm(is_left, end):
-    print("ramping pwm, isleft: "+str(is_left)+" end freq: "+str(end))
+def ramp_pwm(end):
+    print("ramping pwm; end freq: "+str(end))
     step_max_amount = 1000
     min_freq = 1000
     change_freq = 10
 
-    if is_left:
-        beginning = current_left_pwm
-    else:
-        beginning = current_right_pwm
+    beginning = current_pwm
 
     if beginning <= min_freq:
         beginning = min_freq
-        set_pwm_freq(is_left, beginning)
+        set_pwm_freq(False, beginning)
+        set_pwm_freq(True, beginning)
         time.sleep(1 / change_freq)
     steps = math.trunc(math.fabs(beginning - end) / step_max_amount)
     left_over_pwm = math.fabs(beginning - end) - (steps * step_max_amount)
@@ -237,13 +234,14 @@ def ramp_pwm(is_left, end):
         left_over_pwm *= -1
     prev_freq = beginning
     for x in range(1, steps):
-        set_pwm_freq(is_left, prev_freq + change)
+        set_pwm_freq(True, prev_freq + change)
+        set_pwm_freq(False, prev_freq + change)
         prev_freq += change
         time.sleep(1 / change_freq)
-    else:
-        set_pwm_freq(is_left, prev_freq + left_over_pwm)
-        prev_freq += left_over_pwm
-        time.sleep(1 / change_freq)
+    set_pwm_freq(True, prev_freq + left_over_pwm)
+    set_pwm_freq(False, prev_freq + left_over_pwm)
+    prev_freq += left_over_pwm
+    time.sleep(1 / change_freq)
 
 
 def set_pwm_freq(is_left, freq):
@@ -273,23 +271,23 @@ def set_pwm_freq(is_left, freq):
             current_right_pwm = freq
 
 
-def set_motor_speed(is_left, percent, emergency=False):
+def set_motor_speed(percent, emergency=False):
     global current_left_pwm, current_right_pwm
     logging.info("Set motor speed to " + str(percent) + "%!")
     if emergency:
         if not dir_left or not dir_right:
             end_freq = percent * max_pwm
-            set_pwm_freq(is_left, end_freq)
+            set_pwm_freq(end_freq)
         else:
             end_freq = percent * max_turn_pwm
-            set_pwm_freq(is_left, end_freq)
+            set_pwm_freq(end_freq)
     else:
         if not dir_left or not dir_right:
             end_freq = percent * max_pwm
-            ramp_pwm(is_left, end_freq)
+            ramp_pwm(end_freq)
         else:
             end_freq = percent * max_turn_pwm
-            ramp_pwm(is_left, end_freq)
+            ramp_pwm(end_freq)
 
 
 def set_motor_direction(is_left, forward):
@@ -406,8 +404,6 @@ def main_loop():
         if trace_loop:
             print("Main loop")
 
-        time_start = time.time()
-
         imu_loop()
         gps_loop()
         sonar_loop()
@@ -415,36 +411,31 @@ def main_loop():
         # Distance Sensor
         if get_sonar_distance() <= 4 and is_moving:
             print("obstacle in the way, stopping")
-            set_motor_speed(True, 0, True)
-            set_motor_speed(False, 0, True)
+            set_motor_speed(0, True)
             is_moving = False
 
         # if direction isn't proper, then stop moving change direction and start moving
         if not is_proper_direction():
             print("changing proper direction")
             if is_moving:
-                set_motor_speed(True, 0)
-                set_motor_speed(False, 0)
+                set_motor_speed(0)
                 is_moving = False
             set_proper_direction()
             # while not await check_constant_speed():
             # time.sleep(loop_Delay / 1000)
-            set_motor_speed(True, 1)
-            set_motor_speed(False, 1)
+            set_motor_speed(1)
             is_moving = True
         # If distance is fine and remote button isn't pressed and not moving, then start moving
         if get_sonar_distance() > 4 and not is_moving \
                 and (moving_right or moving_left or moving_forward or moving_backward):
             print("started moving")
-            set_motor_speed(True, 1)
-            set_motor_speed(False, 1)
+            set_motor_speed(1)
             is_moving = True
 
         # if not supposed to be moving, but is moving then stop moving
         if not moving_backward and not moving_forward and not moving_left and not moving_right and is_moving:
             print("stopping motion")
-            set_motor_speed(True, 0)
-            set_motor_speed(False, 0)
+            set_motor_speed(0)
             is_moving = False
 
 
