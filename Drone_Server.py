@@ -213,14 +213,20 @@ def setup_logging():
                         filename="drone.log", level=logging.DEBUG)
 
 
-def ramp_pwm(motor_pwm: GPIO.PWM, beginning, end):
+def ramp_pwm(is_left, end):
     step_max_amount = 1000
     min_freq = 1000
     change_freq = 10
+
+    if is_left:
+        beginning = current_left_pwm
+    else:
+        beginning = current_right_pwm
+
     if beginning <= min_freq:
         beginning = min_freq
-        motor_pwm.ChangeFrequency(beginning)
-        time.sleep(1/change_freq)
+        set_pwm_freq(is_left, beginning)
+        time.sleep(1 / change_freq)
     steps = math.trunc(math.fabs(beginning - end) / step_max_amount)
     left_over_pwm = math.fabs(beginning - end) - (steps * step_max_amount)
     if beginning > end:
@@ -230,57 +236,57 @@ def ramp_pwm(motor_pwm: GPIO.PWM, beginning, end):
         left_over_pwm *= -1
     prev_freq = beginning
     for x in range(1, steps):
-        motor_pwm.ChangeFrequency(prev_freq + change)
+        set_pwm_freq(is_left, prev_freq + change)
         prev_freq += change
-        time.sleep(1/change_freq)
-    motor_pwm.ChangeFrequency(prev_freq + left_over_pwm)
+        time.sleep(1 / change_freq)
+    set_pwm_freq(is_left, prev_freq + left_over_pwm)
     prev_freq += left_over_pwm
-    time.sleep(1/change_freq)
+    time.sleep(1 / change_freq)
+
+
+def set_pwm_freq(is_left, freq):
+    global current_right_pwm, current_left_pwm
+    if is_left:
+        if freq is 0 and is_moving:
+            left_motor_pwm.stop()
+            current_left_pwm = 0
+        elif 1000 <= freq <= 20000 and is_moving:
+            left_motor_pwm.ChangeFrequency(freq)
+            current_left_pwm = freq
+        elif 1000 <= freq <= 20000 and not is_moving:
+            left_motor_pwm.start(50)
+            left_motor_pwm.ChangeFrequency(freq)
+            current_left_pwm = freq
+    else:
+        if freq is 0 and is_moving:
+            right_motor_pwm.stop()
+            current_right_pwm = 0
+        elif 1000 <= freq <= 20000 and is_moving:
+            right_motor_pwm.ChangeFrequency(freq)
+            current_right_pwm = freq
+        elif 1000 <= freq <= 20000 and not is_moving:
+            right_motor_pwm.start(50)
+            right_motor_pwm.ChangeFrequency(freq)
+            current_right_pwm = freq
 
 
 def set_motor_speed(is_left, percent, emergency=False):
     global current_left_pwm, current_right_pwm
     logging.info("Set motor speed to " + str(percent) + "%!")
-    if is_left:
-        if percent is 0 and is_moving:
-            left_motor_pwm.stop()
-        elif percent > 0 and not is_moving:
-            left_motor_pwm.start(50)
-
-        if (not dir_left or not dir_right) and percent > 0:
+    if emergency:
+        if not dir_left or not dir_right:
             end_freq = percent * max_pwm
-            if emergency:
-                left_motor_pwm.ChangeFrequency(end_freq)
-            else:
-                ramp_pwm(left_motor_pwm, current_left_pwm, end_freq)
-            current_left_pwm = end_freq
-        elif percent > 0:
+            set_pwm_freq(is_left, end_freq)
+        else:
             end_freq = percent * max_turn_pwm
-            if emergency:
-                right_motor_pwm.ChangeFrequency(end_freq)
-            else:
-                ramp_pwm(right_motor_pwm, current_left_pwm, end_freq)
-            current_left_pwm = end_freq
+            set_pwm_freq(is_left, end_freq)
     else:
-        if percent is 0 and is_moving:
-            right_motor_pwm.stop()
-        elif percent > 0 and not is_moving:
-            right_motor_pwm.start(50)
-
-        if (not dir_left or not dir_right) and percent > 0:
+        if not dir_left or not dir_right:
             end_freq = percent * max_pwm
-            if emergency:
-                right_motor_pwm.ChangeFrequency(end_freq)
-            else:
-                ramp_pwm(right_motor_pwm, current_right_pwm, end_freq)
-            current_right_pwm = end_freq
-        elif percent > 0:
+            ramp_pwm(is_left, end_freq)
+        else:
             end_freq = percent * max_turn_pwm
-            if emergency:
-                right_motor_pwm.ChangeFrequency(end_freq)
-            else:
-                ramp_pwm(right_motor_pwm, current_right_pwm, end_freq)
-            current_right_pwm = end_freq
+            ramp_pwm(is_left, end_freq)
 
 
 def set_motor_direction(is_left, forward):
@@ -448,5 +454,5 @@ try:
 except Exception as error:
     all_stop = True
     GPIO.cleanup()
-    print("ERROR: "+str(error))
+    print("ERROR: " + str(error))
     print("cleaned up!")
