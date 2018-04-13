@@ -70,7 +70,6 @@ class Websocket_Server(WebSocket):
 
 
 def web_socket_handler(message):
-    print(str(message))
     if "return" in message:
         json_data = get_json_string()
         return json_data
@@ -100,7 +99,6 @@ def set_json_variables(json_string):
     moving_backward = bool(json_data["moving_backward"])
     moving_right = bool(json_data["moving_right"])
     moving_left = bool(json_data["moving_left"])
-    return
 
 
 def get_position():
@@ -398,8 +396,8 @@ def main_loop():
 setup()
 print("Setup complete!")
 try:
-    #thread = Background_Thread(web_socket_loop)
-    web_socket_loop()
+    thread = Background_Thread(web_socket_loop)
+    #web_socket_loop()
     main_loop()
 except:
     all_stop = True
