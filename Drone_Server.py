@@ -29,7 +29,6 @@ dir_left = False
 dir_right = False
 dir_forward = False
 dir_backward = False
-is_moving = False
 current_pwm = 0
 
 # Pin Number Variables
@@ -258,22 +257,22 @@ def set_pwm_freq(is_left, freq):
     if freq is current_pwm:
         return
     if is_left:
-        if freq is 0 and is_moving:
+        if freq is 0 and current_pwm > 0:
             left_motor_pwm.stop()
             current_pwm = 0
-        elif 1000 <= freq <= 20000 and is_moving:
+        elif 1000 <= freq <= 20000 and current_pwm > 0:
             left_motor_pwm.ChangeFrequency(freq)
             current_pwm = freq
-        elif 1000 <= freq <= 20000 and not is_moving:
+        elif 1000 <= freq <= 20000 and current_pwm <= 0:
             left_motor_pwm.start(50)
             left_motor_pwm.ChangeFrequency(freq)
             current_pwm = freq
     else:
-        if freq is 0 and is_moving:
+        if freq is 0 and current_pwm > 0:
             right_motor_pwm.stop()
-        elif 1000 <= freq <= 20000 and is_moving:
+        elif 1000 <= freq <= 20000 and current_pwm > 0:
             right_motor_pwm.ChangeFrequency(freq)
-        elif 1000 <= freq <= 20000 and not is_moving:
+        elif 1000 <= freq <= 20000 and current_pwm <= 0:
             right_motor_pwm.start(50)
             right_motor_pwm.ChangeFrequency(freq)
 
@@ -408,7 +407,6 @@ def web_socket_loop():
 
 def main_loop():
     while True:
-        global is_moving
 
         if trace_loop:
             print("Main loop")
@@ -418,34 +416,29 @@ def main_loop():
         sonar_loop()
 
         # Distance Sensor
-        if get_sonar_distance() <= 1 and is_moving:
+        if get_sonar_distance() <= 1 and current_pwm > 0:
             print("obstacle in the way, stopping")
             set_motor_speed(0, True)
-            is_moving = False
 
         # if direction isn't proper, then stop moving change direction and start moving
         if not is_proper_direction():
             print("changing proper direction")
-            if is_moving:
+            if current_pwm > 0:
                 set_motor_speed(0)
-                is_moving = False
             set_proper_direction()
             # while not await check_constant_speed():
             # time.sleep(loop_Delay / 1000)
             set_motor_speed(1)
-            is_moving = True
         # If distance is fine and remote button isn't pressed and not moving, then start moving
-        if get_sonar_distance() > 1 and not is_moving \
+        if get_sonar_distance() > 1 and current_pwm <= 0 \
                 and (moving_right or moving_left or moving_forward or moving_backward):
             print("started moving")
             set_motor_speed(1)
-            is_moving = True
 
         # if not supposed to be moving, but is moving then stop moving
-        if not moving_backward and not moving_forward and not moving_left and not moving_right and is_moving:
+        if not moving_backward and not moving_forward and not moving_left and not moving_right and current_pwm > 0:
             print("stopping motion")
             set_motor_speed(0)
-            is_moving = False
 try:
     setup()
     print("Setup complete!")
