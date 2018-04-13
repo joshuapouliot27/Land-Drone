@@ -403,3 +403,4 @@ except:
     all_stop = True
     asyncio.get_event_loop().stop()
     GPIO.cleanup()
+    print("cleaned up!")
