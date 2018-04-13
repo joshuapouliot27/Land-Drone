@@ -439,7 +439,8 @@ try:
     thread = Background_Thread(web_socket_loop)
     # web_socket_loop()
     main_loop()
-except:
+except Exception:
     all_stop = True
     GPIO.cleanup()
+    print("ERROR: "+str(Exception))
     print("cleaned up!")
