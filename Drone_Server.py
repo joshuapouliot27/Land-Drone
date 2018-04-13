@@ -402,11 +402,11 @@ setup()
 print("Setup complete!")
 try:
     threads = set()
+    threads.add(threading.Thread(target=web_socket_loop))
     threads.add(threading.Thread(target=gps_loop))
     threads.add(threading.Thread(target=sonar_loop))
     threads.add(threading.Thread(target=imu_loop))
     threads.add(threading.Thread(target=main_loop))
-    threads.add(threading.Thread(target=web_socket_loop))
     for thread in threads:
         thread.start()
         thread.join()
