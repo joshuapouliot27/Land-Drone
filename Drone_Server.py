@@ -1,4 +1,4 @@
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 
 import gpsd
 import json
@@ -9,21 +9,23 @@ import time
 import RPi.GPIO as GPIO
 from websocket_server import WebsocketServer
 
+from Background_Thread import Background_Thread
 from Heading_Calculator import Heading_Calculator
 from LIS3MDL import LIS3MDL
 from LSM6DS33 import LSM6DS33
 
-# Action Variables
+# Web Variables
 moving_left = False
 moving_right = False
 moving_forward = False
 moving_backward = False
-
-# Current Value Variables
 current_latitude = None
 current_longitude = None
 current_direction_degrees = None
 current_distance_ahead = None
+WebVariables = Queue()
+
+# Current Value Variables
 dir_left = False
 dir_right = False
 dir_forward = False
@@ -311,37 +313,27 @@ def get_true_heading():
 
 
 def sonar_loop():
-    while True:
-        if trace:
-            print("sonar loop")
-        if all_stop:
-            break
-        time_start = time.time()
-        global current_distance_ahead
-        current_distance_ahead = get_sonar_distance()
-        time.sleep(only_positive_numbers((1 / sonar_frequency) - (time.time() - time_start)))
+    if trace:
+        print("sonar loop")
+    time_start = time.time()
+    global current_distance_ahead
+    current_distance_ahead = get_sonar_distance()
 
 
 def gps_loop():
-    while True:
-        if all_stop:
-            break
-        if trace:
-            print("gps loop")
-        time_start = time.time()
-        get_position()
-        time.sleep(only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
+    if trace:
+        print("gps loop")
+    time_start = time.time()
+    get_position()
+    time.sleep(only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
 
 
 def imu_loop():
-    while True:
-        if all_stop:
-            break
-        if trace:
-            print("imu loop")
-        time_start = time.time()
-        get_true_heading()
-        time.sleep(only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
+    if trace:
+        print("imu loop")
+    time_start = time.time()
+    get_true_heading()
+    time.sleep(only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
 
 
 def web_socket_loop():
@@ -354,11 +346,13 @@ def web_socket_loop():
 
 def main_loop():
     while True:
-        if all_stop:
-            break
         global is_moving
 
         time_start = time.time()
+
+        imu_loop()
+        gps_loop()
+        sonar_loop()
 
         # Distance Sensor
         if get_sonar_distance() <= 4 and is_moving:
@@ -378,9 +372,11 @@ def main_loop():
             set_motor_speed(True, 1)
             set_motor_speed(False, 1)
             is_moving = True
+        #for debugging
         if trace:
             print("can move: " + str(get_sonar_distance() > 4 and not is_moving \
                                      and (moving_right or moving_left or moving_forward or moving_backward)))
+
         # If distance is fine and remote button isn't pressed and not moving, then start moving
         if get_sonar_distance() > 4 and not is_moving \
                 and (moving_right or moving_left or moving_forward or moving_backward):
@@ -394,21 +390,12 @@ def main_loop():
             set_motor_speed(False, 0)
             is_moving = False
 
-        time.sleep(only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
-
 
 setup()
 print("Setup complete!")
 try:
-    processes = set()
-    processes.add(Process(target=web_socket_loop))
-    processes.add(Process(target=gps_loop))
-    processes.add(Process(target=sonar_loop))
-    processes.add(Process(target=imu_loop))
-    processes.add(Process(target=main_loop))
-    for thread in processes:
-        thread.start()
-        thread.join()
+    thread = Background_Thread(web_socket_loop)
+    main_loop()
 except:
     all_stop = True
     GPIO.cleanup()
