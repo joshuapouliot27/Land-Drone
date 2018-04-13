@@ -266,6 +266,7 @@ def set_pwm_freq(is_left, freq):
             current_pwm = freq
         elif 1000 <= freq <= 20000 and current_pwm <= 0:
             left_motor_pwm.start(50)
+            print("starting left")
             left_motor_pwm.ChangeFrequency(freq)
             print("change pwm from " + str(current_pwm) + " to " + str(freq))
             current_pwm = freq
@@ -278,6 +279,7 @@ def set_pwm_freq(is_left, freq):
             print("change pwm from " + str(current_pwm) + " to " + str(freq))
         elif 1000 <= freq <= 20000 and current_pwm <= 0:
             right_motor_pwm.start(50)
+            print("starting right")
             right_motor_pwm.ChangeFrequency(freq)
             print("change pwm from " + str(current_pwm) + " to " + str(freq))
 
