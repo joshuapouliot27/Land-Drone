@@ -218,7 +218,7 @@ def ramp_pwm(end):
         return
     step_max = 500
     step_freq = 1/(step_max/10000)
-    min_freq = 1000
+    min_freq = 500
     if beginning > end:
         steps = math.fabs((beginning-end) // step_max)
         left_over = math.fabs((beginning-end)) - steps * step_max
@@ -260,11 +260,11 @@ def set_pwm_freq(is_left, freq):
             left_motor_pwm.stop()
             print("stopping left")
             current_pwm = 0
-        elif 1000 <= freq <= 20000 and current_pwm > 0:
+        elif 500 <= freq <= 20000 and current_pwm > 0:
             left_motor_pwm.ChangeFrequency(freq)
             print("change pwm from " + str(current_pwm) + " to " + str(freq))
             current_pwm = freq
-        elif 1000 <= freq <= 20000 and current_pwm <= 0:
+        elif 500 <= freq <= 20000 and current_pwm <= 0:
             left_motor_pwm.start(50)
             print("starting left")
             left_motor_pwm.ChangeFrequency(freq)
@@ -274,10 +274,10 @@ def set_pwm_freq(is_left, freq):
         if (freq <= 0) and (current_pwm > 0):
             right_motor_pwm.stop()
             print("stopping right")
-        elif 1000 <= freq <= 20000 and current_pwm > 0:
+        elif 500 <= freq <= 20000 and current_pwm > 0:
             right_motor_pwm.ChangeFrequency(freq)
             print("change pwm from " + str(current_pwm) + " to " + str(freq))
-        elif 1000 <= freq <= 20000 and current_pwm <= 0:
+        elif 500 <= freq <= 20000 and current_pwm <= 0:
             right_motor_pwm.start(50)
             print("starting right")
             right_motor_pwm.ChangeFrequency(freq)
