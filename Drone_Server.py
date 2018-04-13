@@ -214,7 +214,7 @@ def setup_logging():
 
 
 def ramp_pwm(is_left, end):
-    print("ramping pwm, isleft: "+str(is_left)+"; end freq: "+str(end))
+    print("ramping pwm, isleft: "+str(is_left)+" end freq: "+str(end))
     step_max_amount = 1000
     min_freq = 1000
     change_freq = 10
@@ -230,7 +230,7 @@ def ramp_pwm(is_left, end):
         time.sleep(1 / change_freq)
     steps = math.trunc(math.fabs(beginning - end) / step_max_amount)
     left_over_pwm = math.fabs(beginning - end) - (steps * step_max_amount)
-    if beginning > end:
+    if beginning < end:
         change = step_max_amount
     else:
         change = -step_max_amount
