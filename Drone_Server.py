@@ -322,7 +322,6 @@ def gps_loop():
         print("gps loop")
     time_start = time.time()
     get_position()
-    time.sleep(only_positive_numbers((1 / gps_frequency) - (time.time() - time_start)))
 
 
 def imu_loop():
@@ -330,7 +329,6 @@ def imu_loop():
         print("imu loop")
     time_start = time.time()
     get_true_heading()
-    time.sleep(only_positive_numbers((1 / imu_frequency) - (time.time() - time_start)))
 
 
 def web_socket_loop():
