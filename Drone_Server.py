@@ -50,11 +50,7 @@ accelerometer_gyroscope = None
 heading_calculator = None
 
 # Frequency variables
-main_loop_frequency = 1
-gps_frequency = 20
-imu_frequency = 50
-sonar_frequency = 20
-
+main_loop_frequency = 25
 # Misc Variables
 trace = True
 trace_loop = False
