@@ -1,5 +1,4 @@
 import logging, json, time
-import watchdog
 
 import RPi.GPIO as GPIO  # For the pi
 # from RPi import GPIO # For editing
