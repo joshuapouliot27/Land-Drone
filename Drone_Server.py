@@ -250,7 +250,6 @@ def set_pwm_freq(is_left, freq):
     global current_pwm
     if freq is current_pwm:
         return
-    print("setting pwm, isleft: " + str(is_left) + ", from "+str(current_pwm)+" to " + str(freq))
     if is_left:
         if freq is 0 and is_moving:
             left_motor_pwm.stop()
