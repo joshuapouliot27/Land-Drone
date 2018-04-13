@@ -164,12 +164,6 @@ def setup_motor_drivers():
     logging.info("Motor drivers setup!")
 
 
-def setup_web_socket_server():
-    server = WebsocketServer(8081)
-    server.set_fn_message_received(web_socket_handler)
-    server.run_forever()
-
-
 def setup():
     setupLogging()
 
@@ -345,7 +339,9 @@ def imu_loop():
 
 
 def web_socket_loop():
-    setup_web_socket_server()
+    server = WebsocketServer(8081)
+    server.set_fn_message_received(web_socket_handler)
+    server.run_forever()
 
 
 def main_loop():
