@@ -393,8 +393,8 @@ def main_loop():
         time.sleep(only_positive_numbers((1 / main_loop_frequency) - (time.time() - time_start)))
 
 threads = set()
+setup()
 try:
-    setup()
     threads.add(threading.Thread(target=gps_loop))
     threads.add(threading.Thread(target=sonar_loop))
     threads.add(threading.Thread(target=imu_loop))
