@@ -187,9 +187,6 @@ def setup():
     # Motor Drivers
     setup_motor_drivers()
 
-    # Web Socket Server
-    setup_web_socket_server()
-
     logging.info("Setup complete!")
 
 
@@ -397,13 +394,12 @@ def main_loop():
 setup()
 print("Setup complete!")
 try:
-    web_socket = websocket.WebSocketApp("")
     threads = set()
     threads.add(threading.Thread(target=gps_loop))
     threads.add(threading.Thread(target=sonar_loop))
     threads.add(threading.Thread(target=imu_loop))
     threads.add(threading.Thread(target=main_loop))
-    #threads.add(threading.Thread(target=web_socket_loop))
+    threads.add(threading.Thread(target=web_socket_loop))
     for thread in threads:
         thread.start()
         thread.join()
