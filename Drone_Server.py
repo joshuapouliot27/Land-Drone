@@ -6,7 +6,6 @@ import json
 import logging
 import math
 import time
-import websocket
 
 import RPi.GPIO as GPIO
 from websocket_server import WebsocketServer
