@@ -444,7 +444,7 @@ def main_loop():
         #       sonar_loop()
 
         # Distance Sensor
-        if (stop_everything or get_sonar_distance() <= 1) and current_pwm > 0:
+        if (stop_everything or current_distance_ahead <= 1) and current_pwm > 0:
             print("obstacle in the way or stop pressed, emergency stopping")
             set_motor_speed(0, True)
 
@@ -459,7 +459,7 @@ def main_loop():
             set_motor_speed(1)
 
         # If distance is fine and remote button isn't pressed and not moving, then start moving
-        if get_sonar_distance() > 1 and current_pwm <= 0 \
+        if current_distance_ahead > 1 and current_pwm <= 0 \
                 and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
             print("started moving")
             set_motor_speed(1)
