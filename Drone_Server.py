@@ -54,9 +54,9 @@ heading_calculator: Heading_Calculator = None
 
 # Frequency variables
 main_loop_frequency = 10
-imu_frequency = 15
+imu_frequency = 5
 gps_frequency = 5
-sonar_frequency = 10
+sonar_frequency = 5
 
 # Averaging variables
 sonar_points_num_averaging = 5
