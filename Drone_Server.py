@@ -123,9 +123,11 @@ def get_position():
         if len(gps_lat_points) > gps_points_num_averaging:
             for point in gps_lat_points:
                 gps_lat_points.remove(point)
+                break
         if len(gps_lon_points) > gps_points_num_averaging:
             for point in gps_lon_points:
                 gps_lon_points.remove(point)
+                break
         gps_lat_points.add(gps_packet.lat)
         gps_lon_points.add(gps_packet.lon)
         current_longitude = math.fsum(gps_lon_points) / len(gps_lon_points)
