@@ -53,10 +53,10 @@ accelerometer_gyroscope: LSM6DS33 = None
 heading_calculator: Heading_Calculator = None
 
 # Frequency variables
-main_loop_frequency = 5000
-imu_frequency = 5000
-gps_frequency = 5000
-sonar_frequency = 5000
+main_loop_frequency = 5
+imu_frequency = 1
+gps_frequency = 1
+sonar_frequency = 5
 
 # Averaging variables
 sonar_points_num_averaging = 5
