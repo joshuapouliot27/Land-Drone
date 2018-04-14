@@ -435,7 +435,7 @@ def main_loop():
     while True:
 
         if trace_loop:
-            print("Main loop"
+            print("Main loop")
         if all_stop:
             break
 
