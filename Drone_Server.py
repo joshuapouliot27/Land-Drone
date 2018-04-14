@@ -469,6 +469,7 @@ def main_loop():
                 and current_pwm > 0:
             print("stopping motion")
             set_motor_speed(0)
+        time.sleep(1/main_loop_frequency)
 
 
 try:
