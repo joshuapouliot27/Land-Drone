@@ -65,7 +65,7 @@ imu_points_num_averaging = 5
 
 # Misc Variables
 trace = True
-trace_loop = False
+trace_loop = True
 all_stop = False
 max_pwm = 20000
 max_turn_pwm = 8000
