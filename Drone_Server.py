@@ -30,6 +30,9 @@ dir_right = False
 dir_forward = False
 dir_backward = False
 stop_everything = False
+gps_points = set()
+imu_points = set()
+sonar_points = set()
 current_pwm = 0
 
 # Pin Number Variables
@@ -54,6 +57,11 @@ main_loop_frequency = 25
 imu_frequency = 25
 gps_frequency = 25
 sonar_frequency = 25
+
+# Averaging variables
+sonar_points_num_averaging = 5
+gps_points_num_averaging = 5
+imu_points_num_averaging = 5
 
 # Misc Variables
 trace = True
@@ -390,7 +398,10 @@ def sonar_loop():
         if trace_loop:
             print("sonar loop")
         global current_distance_ahead
-        current_distance_ahead = get_sonar_distance()
+        if len(sonar_points) > sonar_points_num_averaging:
+            sonar_points.remove(iter(sonar_points).next())
+        sonar_points.add(get_sonar_distance())
+        current_distance_ahead = math.fsum(sonar_points) / len(sonar_points)
         time.sleep(1 / sonar_frequency)
 
 
