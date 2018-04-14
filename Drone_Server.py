@@ -51,6 +51,10 @@ heading_calculator: Heading_Calculator = None
 
 # Frequency variables
 main_loop_frequency = 25
+imu_frequency = 25
+gps_frequency = 25
+sonar_frequency = 25
+
 # Misc Variables
 trace = True
 trace_loop = False
@@ -220,10 +224,10 @@ def ramp_pwm(end):
     if beginning is end:
         return
     step_max = 500
-    step_freq = 1/(step_max/10000)
+    step_freq = 1 / (step_max / 10000)
     if beginning > end:
-        steps = math.fabs((beginning-end) // step_max)
-        left_over = math.fabs((beginning-end)) - steps * step_max
+        steps = math.fabs((beginning - end) // step_max)
+        left_over = math.fabs((beginning - end)) - steps * step_max
         for x in range(0, int(steps)):
             new_pwm = current_pwm - step_max
             set_pwm_freq(False, new_pwm)
@@ -235,7 +239,7 @@ def ramp_pwm(end):
         set_pwm_freq(True, new_pwm)
         current_pwm = new_pwm
         time.sleep(1 / step_freq)
-        print("final pwm: "+str(new_pwm))
+        print("final pwm: " + str(new_pwm))
     else:
         steps = math.fabs((beginning - end) // step_max)
         left_over = math.fabs((beginning - end)) - steps * step_max
@@ -244,7 +248,7 @@ def ramp_pwm(end):
             set_pwm_freq(False, new_pwm)
             set_pwm_freq(True, new_pwm)
             current_pwm = new_pwm
-            time.sleep(1/step_freq)
+            time.sleep(1 / step_freq)
         new_pwm = current_pwm + left_over
         set_pwm_freq(False, new_pwm)
         set_pwm_freq(True, new_pwm)
@@ -380,25 +384,34 @@ def get_true_heading():
 
 
 def sonar_loop():
-    if trace_loop:
-        print("sonar loop")
-    time_start = time.time()
-    global current_distance_ahead
-    current_distance_ahead = get_sonar_distance()
+    while True:
+        if all_stop:
+            break
+        if trace_loop:
+            print("sonar loop")
+        global current_distance_ahead
+        current_distance_ahead = get_sonar_distance()
+        time.sleep(1 / sonar_frequency)
 
 
 def gps_loop():
-    if trace_loop:
-        print("gps loop")
-    time_start = time.time()
-    get_position()
+    while True:
+        if all_stop:
+            break
+        if trace_loop:
+            print("gps loop")
+        get_position()
+        time.sleep(1 / gps_frequency)
 
 
 def imu_loop():
-    if trace_loop:
-        print("imu loop")
-    time_start = time.time()
-    get_true_heading()
+    while True:
+        if all_stop:
+            break
+        if trace_loop:
+            print("imu loop")
+        get_true_heading()
+        time.sleep(1 / imu_frequency)
 
 
 def web_socket_loop():
@@ -412,9 +425,9 @@ def main_loop():
         if trace_loop:
             print("Main loop")
 
-        imu_loop()
-        gps_loop()
-        sonar_loop()
+        #       imu_loop()
+        #       gps_loop()
+        #       sonar_loop()
 
         # Distance Sensor
         if (stop_everything or get_sonar_distance() <= 1) and current_pwm > 0:
@@ -438,22 +451,25 @@ def main_loop():
             set_motor_speed(1)
 
         # if not supposed to be moving, but is moving then stop moving
-        if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) and current_pwm > 0:
+        if ((
+                    not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) and current_pwm > 0:
             print("stopping motion")
             set_motor_speed(0)
+
+
 try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
-    #thread2 = Background_Thread(gps_loop())
-    #thread3 = Background_Thread(sonar_loop())
-    #thread4 = Background_Thread(imu_loop())
+    thread2 = Background_Thread(gps_loop())
+    thread3 = Background_Thread(sonar_loop())
+    thread4 = Background_Thread(imu_loop())
     # web_socket_loop()
     main_loop()
 except Exception as error:
-    set_pwm_freq(False,0)
-    set_pwm_freq(True,0)
+    set_pwm_freq(False, 0)
+    set_pwm_freq(True, 0)
+    print("ERROR: " + str(error))
     all_stop = True
     GPIO.cleanup()
-    print("ERROR: " + str(error))
     print("cleaned up!")
