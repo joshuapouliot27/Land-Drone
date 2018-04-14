@@ -94,7 +94,7 @@ def get_json_string():
 
 
 def set_json_variables(json_string):
-    global moving_forward, moving_backward, moving_left, moving_right
+    global moving_forward, moving_backward, moving_left, moving_right, stop_everything
     json_data = json.loads(json_string)
     moving_forward = bool(json_data["moving_forward"])
     moving_backward = bool(json_data["moving_backward"])
