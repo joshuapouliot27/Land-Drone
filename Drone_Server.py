@@ -462,8 +462,8 @@ def main_loop():
             set_motor_speed(1)
 
         # if not supposed to be moving, but is moving then stop moving
-        if ((
-                    not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) and current_pwm > 0:
+        if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
+                and current_pwm > 0:
             print("stopping motion")
             set_motor_speed(0)
 
@@ -472,9 +472,9 @@ try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
-    thread2 = Background_Thread(gps_loop())
     thread3 = Background_Thread(sonar_loop())
     thread4 = Background_Thread(imu_loop())
+    thread2 = Background_Thread(gps_loop())
     # web_socket_loop()
     main_loop()
 except Exception as error:
