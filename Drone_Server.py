@@ -50,10 +50,10 @@ accelerometer_gyroscope: LSM6DS33 = None
 heading_calculator: Heading_Calculator = None
 
 # Frequency variables
-main_loop_frequency = 25
-imu_frequency = 25
-gps_frequency = 25
-sonar_frequency = 25
+main_loop_frequency = 10
+imu_frequency = 15
+gps_frequency = 5
+sonar_frequency = 10
 
 # Misc Variables
 trace = True
