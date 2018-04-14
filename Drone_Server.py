@@ -477,6 +477,8 @@ try:
     thread4 = Background_Thread(imu_loop)
     thread2 = Background_Thread(gps_loop)
     thread5 = Background_Thread(main_loop)
+    while not all_stop:
+        a = ""
 except Exception as error:
     set_pwm_freq(False, 0)
     set_pwm_freq(True, 0)
