@@ -30,7 +30,8 @@ dir_right = False
 dir_forward = False
 dir_backward = False
 stop_everything = False
-gps_points = set()
+gps_lat_points = set()
+gps_lon_points = set()
 imu_points = set()
 sonar_points = set()
 current_pwm = 0
@@ -119,8 +120,16 @@ def get_position():
     global current_latitude, current_longitude, current_direction_degrees
     gps_packet = gpsd.get_current()
     if gps_packet.mode > 1:
-        current_longitude = gps_packet.lon
-        current_latitude = gps_packet.lat
+        if len(gps_lat_points) > gps_points_num_averaging:
+            for point in gps_lat_points:
+                gps_lat_points.remove(point)
+        if len(gps_lon_points) > gps_points_num_averaging:
+            for point in gps_lon_points:
+                gps_lon_points.remove(point)
+        gps_lat_points.add(gps_packet.lat)
+        gps_lon_points.add(gps_packet.lon)
+        current_longitude = math.fsum(gps_lon_points) / len(gps_lon_points)
+        current_latitude = math.fsum(gps_lat_points) / len(gps_lat_points)
     logging.debug("Current Position: Latitude: {0:.2}; Longitude: {1:.2}".format(current_latitude, current_longitude))
 
 
@@ -387,7 +396,12 @@ def only_positive_numbers(number: float):
 
 def get_true_heading():
     global current_direction_degrees
-    current_direction_degrees = heading_calculator.calculate_tilt_compensated_heading()
+    if len(imu_points) > imu_points_num_averaging:
+        for point in imu_points:
+            imu_points.remove(point)
+            break
+    imu_points.add(heading_calculator.calculate_tilt_compensated_heading())
+    current_direction_degrees = math.fsum(imu_points) / len(imu_points)
 
 
 def sonar_loop():
