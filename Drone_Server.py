@@ -399,7 +399,9 @@ def sonar_loop():
             print("sonar loop")
         global current_distance_ahead
         if len(sonar_points) > sonar_points_num_averaging:
-            sonar_points.remove(iter(sonar_points).next())
+            for point in sonar_points:
+                sonar_points.remove(point)
+                break
         sonar_points.add(get_sonar_distance())
         current_distance_ahead = math.fsum(sonar_points) / len(sonar_points)
         time.sleep(1 / sonar_frequency)
