@@ -291,7 +291,6 @@ def set_pwm_freq(is_left, freq):
 
 
 def set_motor_speed(percent, emergency=False):
-    global current_left_pwm, current_right_pwm
     logging.info("Set motor speed to " + str(percent) + "%!")
     if emergency:
         if not dir_left and not dir_right:
@@ -392,38 +391,39 @@ def get_true_heading():
 
 
 def sonar_loop():
-    if trace_loop:
-        print("sonar loop")
-    global current_distance_ahead
-    if len(sonar_points) > sonar_points_num_averaging:
-        for point in sonar_points:
-            sonar_points.remove(point)
-            break
-    sonar_points.add(get_sonar_distance())
-    current_distance_ahead = math.fsum(sonar_points) / len(sonar_points)
-    time.sleep(1 / sonar_frequency)
-
-
-def gps_loop():
-    if trace_loop:
-        print("gps loop")
-    get_position()
-    time.sleep(1 / gps_frequency)
-
-
-def imu_loop():
-    if trace_loop:
-        print("imu loop")
-    get_true_heading()
-    time.sleep(1 / imu_frequency)
-
-def get_data_loop():
     while True:
         if all_stop:
             break
-        imu_loop()
-        gps_loop()
-        sonar_loop()
+        if trace_loop:
+            print("sonar loop")
+        global current_distance_ahead
+        if len(sonar_points) > sonar_points_num_averaging:
+            for point in sonar_points:
+                sonar_points.remove(point)
+                break
+        sonar_points.add(get_sonar_distance())
+        current_distance_ahead = math.fsum(sonar_points) / len(sonar_points)
+        time.sleep(1 / sonar_frequency)
+
+
+def gps_loop():
+    while True:
+        if all_stop:
+            break
+        if trace_loop:
+            print("gps loop")
+        get_position()
+        time.sleep(1 / gps_frequency)
+
+
+def imu_loop():
+    while True:
+        if all_stop:
+            break
+        if trace_loop:
+            print("imu loop")
+        get_true_heading()
+        time.sleep(1 / imu_frequency)
 
 
 def web_socket_loop():
@@ -473,7 +473,9 @@ try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
-    thread2 = Background_Thread(get_data_loop())
+    thread3 = Background_Thread(sonar_loop)
+    thread4 = Background_Thread(imu_loop)
+    thread2 = Background_Thread(gps_loop)
     # web_socket_loop()
     main_loop()
 except Exception as error:
