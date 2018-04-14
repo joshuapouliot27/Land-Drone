@@ -474,7 +474,7 @@ try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
-    thread3 = Background_Thread(sonar_loop())
+    #thread3 = Background_Thread(sonar_loop())
     thread4 = Background_Thread(imu_loop())
     thread2 = Background_Thread(gps_loop())
     # web_socket_loop()
