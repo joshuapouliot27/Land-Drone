@@ -3,7 +3,7 @@ import Math
 import logging
 
 from smbus2 import SMBus
-from vectors import Vector
+from sympy.vector import Vector
 
 
 class LSM6DS33:
