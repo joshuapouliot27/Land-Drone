@@ -33,7 +33,6 @@ import math
 
 class Heading_Calculator:
     def __init__(self, gyroscope_accelerometer, magnetometer):
-        self.RAD_TO_DEG = 57.29578
         self.G_GAIN = 0.00875  # [deg/s/LSB]  If you change the dps for gyro, you need to update this value accordingly
 
         self.magXmax = 4233
