@@ -30,9 +30,14 @@
 import datetime
 import math
 
+from vectors import Vector
+
+from LSM6DS33 import LSM6DS33
+from LIS3MDL import LIS3MDL
+
 
 class Heading_Calculator:
-    def __init__(self, gyroscope_accelerometer, magnetometer):
+    def __init__(self, gyroscope_accelerometer: LSM6DS33, magnetometer: LIS3MDL):
         self.G_GAIN = 0.00875  # [deg/s/LSB]  If you change the dps for gyro, you need to update this value accordingly
 
         self.magXmax = 4233
@@ -48,53 +53,38 @@ class Heading_Calculator:
 
         self.magn = magnetometer
         self.gyro_accel = gyroscope_accelerometer
+        self.olx_mag_value = Vector(0, 0, 0)
+        self.old_acc_value = Vector(0, 0, 0)
+
+        self.mag_lpf_factor = 0.4
+        self.acc_lpf_factor = 0.1
 
         self.a = datetime.datetime.now()
         self.b = 0
 
-    def readACCx(self):
-        return self.gyro_accel.get_accelerometer_data().x
-
-    def readACCy(self):
-        return self.gyro_accel.get_accelerometer_data().y
-
-    def readACCz(self):
-        return self.gyro_accel.get_accelerometer_data().z
-
-    def readMAGx(self):
-        return self.magn.get_magnetometer_data().x
-
-    def readMAGy(self):
-        return self.magn.get_magnetometer_data().y
-
-    def readMAGz(self):
-        return self.magn.get_magnetometer_data().z
-
-    def readGYRx(self):
-        return self.gyro_accel.get_gyroscope_data().x
-
-    def readGYRy(self):
-        return self.gyro_accel.get_gyroscope_data().y
-
-    def readGYRz(self):
-        return self.gyro_accel.get_gyroscope_data().z
-
     def calculate_tilt_compensated_heading(self):
         # Read the accelerometer,gyroscope and magnetometer values
-        ACCx = self.readACCx()
-        ACCy = self.readACCy()
-        ACCz = self.readACCz()
-        GYRx = self.readGYRx()
-        GYRy = self.readGYRy()
-        GYRz = self.readGYRz()
-        MAGx = self.readMAGx()
-        MAGy = self.readMAGy()
-        MAGz = self.readMAGz()
+        acc_data = self.gyro_accel.get_accelerometer_data()
+        acc_data.x = acc_data.x * self.acc_lpf_factor + self.old_acc_value.x * (1 - self.acc_lpf_factor)
+        acc_data.y = acc_data.y * self.acc_lpf_factor + self.old_acc_value.y * (1 - self.acc_lpf_factor)
+        acc_data.z = acc_data.z * self.acc_lpf_factor + self.old_acc_value.z * (1 - self.acc_lpf_factor)
+        gyro_data = self.gyro_accel.get_gyroscope_data()
+        magn_data = self.magn.get_magnetometer_data()
+        magn_data.x = magn_data.x * self.mag_lpf_factor + self.olx_mag_value.x * (1-self.mag_lpf_factor)
+        magn_data.y = magn_data.y * self.mag_lpf_factor + self.olx_mag_value.y * (1 - self.mag_lpf_factor)
+        magn_data.z = magn_data.z * self.mag_lpf_factor + self.olx_mag_value.z * (1 - self.mag_lpf_factor)
+        self.old_acc_value = acc_data
+        self.olx_mag_value = magn_data
 
         # Apply hard iron calibration to compass
-        MAGx -= (self.magXmin + self.magXmax) / 2
-        MAGy -= (self.magYmin + self.magYmax) / 2
-        MAGz -= (self.magZmin + self.magZmax) / 2
+        magn_data.x -= (self.magXmin + self.magXmax) / 2
+        magn_data.y -= (self.magYmin + self.magYmax) / 2
+        magn_data.z -= (self.magZmin + self.magZmax) / 2
+
+        # Apply soft iron calibration
+        magn_data.x = (magn_data.x - self.magXmin) / (self.magXmax - self.magXmin) * 2 - 1
+        magn_data.y = (magn_data.y - self.magYmin) / (self.magYmax - self.magYmin) * 2 - 1
+        magn_data.z = (magn_data.z - self.magZmin) / (self.magZmax - self.magZmin) * 2 - 1
 
         # Calculate loop Period(LP). How long between Gyro Reads
         self.b = datetime.datetime.now() - self.a
@@ -102,9 +92,9 @@ class Heading_Calculator:
         LP = self.b.microseconds / (1000000 * 1.0)
 
         # Convert Gyro raw to degrees per second
-        rate_gyr_x = GYRx * self.G_GAIN
-        rate_gyr_y = GYRy * self.G_GAIN
-        rate_gyr_z = GYRz * self.G_GAIN
+        rate_gyr_x = gyro_data.x * self.G_GAIN
+        rate_gyr_y = gyro_data.y * self.G_GAIN
+        rate_gyr_z = gyro_data.z * self.G_GAIN
 
         # Calculate the angles from the gyro.
         self.gyroXangle += rate_gyr_x * LP
@@ -123,11 +113,25 @@ class Heading_Calculator:
         #
         # Two different pieces of code are used depending on how your IMU is mounted.
         # If IMU is up the correct way, Skull logo is facing down, Use these lines
-        AccXangle -= 180.0
-        if AccYangle > 90:
-            AccYangle -= 270.0
-        else:
-            AccYangle += 90.0
+        # AccXangle -= 180.0
+        # if AccYangle > 90:
+        #     AccYangle -= 270.0
+        # else:
+        #     AccYangle += 90.0
+        # If IMU is upside down E.g Skull logo is facing up;
+        if AccXangle >180:
+            AccXangle -= 360.0
+        AccYangle-=90
+        if (AccYangle >180):
+            AccYangle -= 360.0
+        ############################ END ##################################
+
+        ####################################################################
+        ############################MAG direction ##########################
+        ####################################################################
+        # If IMU is upside down, then use this line.  It isnt needed if the
+        # IMU is the correct way up
+        magn_data.y *= -1
         #
         ############################ END ##################################
 
@@ -150,17 +154,17 @@ class Heading_Calculator:
         # roll = -math.asin(accYnorm / math.cos(pitch))
         #
         # Us these four lines when the IMU is upside down. Skull logo is facing up
-        accXnorm = -accXnorm				#flip Xnorm as the IMU is upside down
-        accYnorm = -accYnorm				#flip Ynorm as the IMU is upside down
+        accXnorm = -accXnorm  # flip Xnorm as the IMU is upside down
+        accYnorm = -accYnorm  # flip Ynorm as the IMU is upside down
         pitch = math.asin(accXnorm)
-        roll = math.asin(accYnorm/math.cos(pitch))
+        roll = math.asin(accYnorm / math.cos(pitch))
         #
         ############################ END ##################################
 
         # Calculate the new tilt compensated values
-        magnetometer_x_component = MAGx * math.cos(pitch) + MAGz * math.sin(pitch)
-        magnetometer_y_component = MAGx * math.sin(roll) * math.sin(pitch) + MAGy * math.cos(roll) \
-                                   - MAGz * math.sin(roll) * math.cos(pitch)
+        magnetometer_x_component = magn_data.x * math.cos(pitch) + magn_data.z * math.sin(pitch)
+        magnetometer_y_component = magn_data.x * math.sin(roll) * math.sin(pitch) + magn_data.y * math.cos(roll) \
+                                   - magn_data.z * math.sin(roll) * math.cos(pitch)
 
         # Calculate tilt compensated heading
         tilt_compensated_heading = 180 * math.atan2(magnetometer_y_component, magnetometer_x_component) / math.pi
