@@ -152,14 +152,14 @@ class Heading_Calculator:
         ###################Calculate pitch and roll#########################
         ####################################################################
         # Us these two lines when the IMU is up the right way. Skull logo is facing down
-        pitch = math.asin(accXnorm)
-        roll = -math.asin(accYnorm / math.cos(pitch))
+        # pitch = math.asin(accXnorm)
+        # roll = -math.asin(accYnorm / math.cos(pitch))
         #
         # Us these four lines when the IMU is upside down. Skull logo is facing up
-        # accXnorm = -accXnorm				#flip Xnorm as the IMU is upside down
-        # accYnorm = -accYnorm				#flip Ynorm as the IMU is upside down
-        # pitch = math.asin(accXnorm)
-        # roll = math.asin(accYnorm/math.cos(pitch))
+        accXnorm = -accXnorm				#flip Xnorm as the IMU is upside down
+        accYnorm = -accYnorm				#flip Ynorm as the IMU is upside down
+        pitch = math.asin(accXnorm)
+        roll = math.asin(accYnorm/math.cos(pitch))
         #
         ############################ END ##################################
 
