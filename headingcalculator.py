@@ -74,9 +74,9 @@ class HeadingCalculator:
         magn_data.z -= (self.magZmin + self.magZmax) / 2
 
         # Apply soft iron calibration
-        #magn_data.x = (magn_data.x - self.magXmin) / (self.magXmax - self.magXmin) * 2 - 1
-        #magn_data.y = (magn_data.y - self.magYmin) / (self.magYmax - self.magYmin) * 2 - 1
-        #magn_data.z = (magn_data.z - self.magZmin) / (self.magZmax - self.magZmin) * 2 - 1
+        magn_data.x = (magn_data.x - self.magXmin) / (self.magXmax - self.magXmin) * 2 - 1
+        magn_data.y = (magn_data.y - self.magYmin) / (self.magYmax - self.magYmin) * 2 - 1
+        magn_data.z = (magn_data.z - self.magZmin) / (self.magZmax - self.magZmin) * 2 - 1
 
         # Convert Accelerometer values to degrees
         AccXangle = math.degrees(math.atan2(acc_data.y, acc_data.z) + math.pi)
