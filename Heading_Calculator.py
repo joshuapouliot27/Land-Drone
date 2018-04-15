@@ -36,12 +36,12 @@ class Heading_Calculator:
         self.RAD_TO_DEG = 57.29578
         self.G_GAIN = 0.00875  # [deg/s/LSB]  If you change the dps for gyro, you need to update this value accordingly
 
-        self.magXmax = 4149
-        self.magYmax = 1643
-        self.magZmax = 8910
-        self.magXmin = -2745
-        self.magYmin = -4985
-        self.magZmin = 2674
+        self.magXmax = 4233
+        self.magYmax = 1944
+        self.magZmax = 9243
+        self.magXmin = -3091
+        self.magYmin = -5348
+        self.magZmin = 2001
 
         self.gyroXangle = 0.0
         self.gyroYangle = 0.0
