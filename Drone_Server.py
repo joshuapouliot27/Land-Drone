@@ -120,11 +120,11 @@ def get_position():
     global current_latitude, current_longitude, current_direction_degrees
     gps_packet = gpsd.get_current()
     if gps_packet.mode > 1:
-        if len(gps_lat_points) > gps_points_num_averaging:
+        if len(gps_lat_points) >= gps_points_num_averaging:
             for point in gps_lat_points:
                 gps_lat_points.remove(point)
                 break
-        if len(gps_lon_points) > gps_points_num_averaging:
+        if len(gps_lon_points) >= gps_points_num_averaging:
             for point in gps_lon_points:
                 gps_lon_points.remove(point)
                 break
@@ -403,7 +403,7 @@ def only_positive_numbers(number: float):
 
 def get_true_heading():
     global current_direction_degrees
-    if len(imu_points) > imu_points_num_averaging:
+    if len(imu_points) >= imu_points_num_averaging:
         for point in imu_points:
             imu_points.remove(point)
             break
@@ -418,7 +418,7 @@ def sonar_loop():
         if trace_loop:
             print("sonar loop")
         global current_distance_ahead
-        if len(sonar_points) > sonar_points_num_averaging:
+        if len(sonar_points) >= sonar_points_num_averaging:
             for point in sonar_points:
                 sonar_points.remove(point)
                 break
