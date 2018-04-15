@@ -45,9 +45,10 @@ try:
     while True:
 
     # Read magnetometer values
-        MAGx = magnetometer.get_magnetometer_data().x
-        MAGy = magnetometer.get_magnetometer_data().y
-        MAGz = magnetometer.get_magnetometer_data().z
+        magn_data = magnetometer.get_magnetometer_data()
+        MAGx = magn_data.x
+        MAGy = magn_data.y
+        MAGz = magn_data.z
 
         if MAGx > magXmax:
             magXmax = MAGx

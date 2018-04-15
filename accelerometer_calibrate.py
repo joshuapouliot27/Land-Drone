@@ -1,40 +1,80 @@
-import math, time
+#!/usr/bin/python
+#   This program is used to calibrate the compass on a BerryIMUv1 or
+#   BerryIMUv2.
+#
+#   Start this program and rotate your BerryIMU in all directions. 
+#   You will see the maximum and minimum values change. 
+#   After about 30secs or when the values are not changing, press Ctrl-C.
+#   The program will printout some text which you then need to add to
+#   berryIMU.py or berryIMU-simple.py
+
+
+import sys, signal, os
+import time
+
 from LSM6DS33 import LSM6DS33
-
-accXnorm = 0
-accYnorm = 0
-accXnorms = 0
-accYnorms = 0
-total_nums = 0
-accel = LSM6DS33()
-
-seconds = 10
-loop_delay = 10  # in Hz
+import datetime
 
 
-def calc_norm_accel():
-    global accXnorm, accYnorm
-    accel_data = accel.get_accelerometer_data()
-    ACCx = accel_data.x
-    ACCy = accel_data.y
-    ACCz = accel_data.z
-    accXnorm = ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
-    accYnorm = ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
+def handle_ctrl_c(signal, frame):
+    os.system("clear")
+    print("accXmin = ", accXmin)
+    print("accYmin = ", accYmin)
+    print("accZmin = ", accZmin)
+    print("accXmax = ", accXmax)
+    print("accYmax = ", accYmax)
+    print("accZmax = ", accZmax)
+    sys.exit(130)  # 130 is standard exit code for ctrl-c
 
 
-time_start = time.time()
+accelerometer = LSM6DS33
 
-for x in range(0, math.trunc(seconds / (1/loop_delay))):
-    time_s = time.time()
-    calc_norm_accel()
-    accXnorms += accXnorm
-    accYnorms += accYnorm
-    total_nums += 1
-    #print("x: {:10} y: {:10}".format(accXnorm,accYnorm))
-    time.sleep((1/loop_delay)-(time.time()-time_s))
+# This will capture exit when using Ctrl-C
+signal.signal(signal.SIGINT, handle_ctrl_c)
 
-seconds_took = time.time() - time_start
+a = datetime.datetime.now()
 
-avgx = accXnorms / total_nums
-avgy = accYnorms / total_nums
-print("In " + str(seconds_took) + " seconds.  avg x: " + str(avgx) + ", avg y:" + str(avgy))
+# Preload the variables used to keep track of the minimum and maximum values
+accXmin = 9999999
+accYmin = 9999999
+accZmin = 9999999
+accXmax = -9999999
+accYmax = -9999999
+accZmax = -9999999
+try:
+    while True:
+
+    # Read acc values
+        acc_data = accelerometer.get_accelerometer_data()
+        accx = acc_data.x
+        accy = acc_data.y
+        accz = acc_data.z
+
+        if accx > accXmax:
+            accXmax = accx
+        if accy > accYmax:
+            accYmax = accy
+        if accz > accZmax:
+            accZmax = accz
+
+        if accx < accXmin:
+            accXmin = accx
+        if accy < accYmin:
+            accYmin = accy
+        if accz < accZmin:
+            accZmin = accz
+
+        os.system("clear")
+        print("X: {:5} to {:5}".format(accXmin, accXmax))
+        print("Y: {:5} to {:5}".format(accYmin, accYmax))
+        print("Z: {:5} to {:5}".format(accZmin, accZmax))
+
+
+
+        # slow program down a bit, makes the output more readable
+        time.sleep(1/10)
+except:
+    os.system("clear")
+    print("X: {:5} to {:5}".format(accXmin, accXmax))
+    print("Y: {:5} to {:5}".format(accYmin, accYmax))
+    print("Z: {:5} to {:5}".format(accZmin, accZmax))
