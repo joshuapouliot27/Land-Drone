@@ -12,11 +12,12 @@ calc = HeadingCalculator(acc_gyr, magn)
 points = set()
 max_points = 5
 while True:
-    if len(points) >= max_points:
-        for point in points:
-            points.remove(point)
-            break
-    points.add(calc.calculate_tilt_compensated_heading())
-    heading = math.fsum(points) / len(points)
+    #if len(points) >= max_points:
+    #    for point in points:
+    #        points.remove(point)
+    #        break
+    #points.add(calc.calculate_tilt_compensated_heading())
+    #heading = math.fsum(points) / len(points)
+    heading = calc.calculate_tilt_compensated_heading()
     print(time.strftime("%X") + "; Heading: "+str(heading))
     time.sleep(1/5)
