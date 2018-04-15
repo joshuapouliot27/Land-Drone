@@ -1,3 +1,4 @@
+import datetime
 import math
 import time
 
@@ -17,5 +18,5 @@ while True:
             break
     points.add(calc.calculate_tilt_compensated_heading())
     heading = math.fsum(points) / len(points)
-    print("Heading: "+str(heading))
+    print(time.strftime("%X") + "; Heading: "+str(heading))
     time.sleep(1/5)
