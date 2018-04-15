@@ -2,13 +2,13 @@ import datetime
 import math
 import time
 
-from Heading_Calculator import Heading_Calculator
+from headingcalculator import HeadingCalculator
 from LIS3MDL import LIS3MDL
 from LSM6DS33 import LSM6DS33
 
 magn = LIS3MDL()
 acc_gyr = LSM6DS33()
-calc = Heading_Calculator(acc_gyr, magn)
+calc = HeadingCalculator(acc_gyr, magn)
 points = set()
 max_points = 5
 while True:

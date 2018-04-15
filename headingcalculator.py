@@ -36,7 +36,7 @@ from LSM6DS33 import LSM6DS33
 from LIS3MDL import LIS3MDL
 
 
-class Heading_Calculator:
+class HeadingCalculator:
     def __init__(self, gyroscope_accelerometer: LSM6DS33, magnetometer: LIS3MDL):
         self.G_GAIN = 0.00875  # [deg/s/LSB]  If you change the dps for gyro, you need to update this value accordingly
 
@@ -70,7 +70,7 @@ class Heading_Calculator:
         acc_data.z = acc_data.z * self.acc_lpf_factor + self.old_acc_value.z * (1 - self.acc_lpf_factor)
         gyro_data = self.gyro_accel.get_gyroscope_data()
         magn_data = self.magn.get_magnetometer_data()
-        magn_data.x = magn_data.x * self.mag_lpf_factor + self.olx_mag_value.x * (1-self.mag_lpf_factor)
+        magn_data.x = magn_data.x * self.mag_lpf_factor + self.olx_mag_value.x * (1 - self.mag_lpf_factor)
         magn_data.y = magn_data.y * self.mag_lpf_factor + self.olx_mag_value.y * (1 - self.mag_lpf_factor)
         magn_data.z = magn_data.z * self.mag_lpf_factor + self.olx_mag_value.z * (1 - self.mag_lpf_factor)
         self.old_acc_value = acc_data
@@ -102,8 +102,8 @@ class Heading_Calculator:
         self.gyroZangle += rate_gyr_z * LP
 
         # Convert Accelerometer values to degrees
-        AccXangle = math.degrees(math.atan2(ACCy, ACCz) + math.pi)
-        AccYangle = math.degrees(math.atan2(ACCz, ACCx) + math.pi)
+        AccXangle = math.degrees(math.atan2(acc_data.y, acc_data.z) + math.pi)
+        AccYangle = math.degrees(math.atan2(acc_data.z, acc_data.x) + math.pi)
 
         ####################################################################
         ######################Correct rotation value########################
@@ -136,15 +136,15 @@ class Heading_Calculator:
         ############################ END ##################################
 
         # Calculate heading
-        heading = 180 * math.atan2(MAGy, MAGx) / math.pi
+        heading = 180 * math.atan2(magn_data.y, magn_data.x) / math.pi
 
         # Only have our heading between 0 and 360
         if heading < 0:
             heading += 360
 
         # Normalize accelerometer raw values.
-        accXnorm = ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
-        accYnorm = ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
+        accXnorm = acc_data.x / math.sqrt(acc_data.x * acc_data.x + acc_data.y * acc_data.y + acc_data.z * acc_data.z)
+        accYnorm = acc_data.y / math.sqrt(acc_data.x * acc_data.x + acc_data.y * acc_data.y + acc_data.z * acc_data.z)
 
         ####################################################################
         ###################Calculate pitch and roll#########################

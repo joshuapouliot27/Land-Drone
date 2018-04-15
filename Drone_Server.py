@@ -11,7 +11,7 @@ from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 from websocket_server import WebsocketServer
 
 from Background_Thread import Background_Thread
-from Heading_Calculator import Heading_Calculator
+from headingcalculator import HeadingCalculator
 from LIS3MDL import LIS3MDL
 from LSM6DS33 import LSM6DS33
 
@@ -51,7 +51,7 @@ right_motor_pwm: GPIO.PWM = None
 # IMU Variables
 magnetometer: LIS3MDL = None
 accelerometer_gyroscope: LSM6DS33 = None
-heading_calculator: Heading_Calculator = None
+heading_calculator: HeadingCalculator = None
 
 # Frequency variables
 main_loop_frequency = 5000
@@ -161,7 +161,7 @@ def setup_imu():
     global magnetometer, accelerometer_gyroscope, heading_calculator
     magnetometer = LIS3MDL()
     accelerometer_gyroscope = LSM6DS33()
-    heading_calculator = Heading_Calculator(accelerometer_gyroscope, magnetometer)
+    heading_calculator = HeadingCalculator(accelerometer_gyroscope, magnetometer)
     logging.info("IMU setup!")
 
 
@@ -407,7 +407,7 @@ def get_true_heading():
         for point in imu_points:
             imu_points.remove(point)
             break
-    imu_points.add(heading_calculator.calculate_tilt_compensated_heading())
+    imu_points.add(HeadingCalculator.calculate_tilt_compensated_heading())
     current_direction_degrees = math.fsum(imu_points) / len(imu_points)
 
 
