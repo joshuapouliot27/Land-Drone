@@ -133,6 +133,7 @@ class HeadingCalculator:
 
         # Calculate tilt compensated heading
         tilt_compensated_heading =  math.degrees(math.atan2(magnetometer_y_component, magnetometer_x_component))
+        tilt_compensated_heading+=270
         if tilt_compensated_heading < 0:
             tilt_compensated_heading += 360
         return tilt_compensated_heading
