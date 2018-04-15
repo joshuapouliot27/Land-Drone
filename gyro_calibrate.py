@@ -27,7 +27,7 @@ def handle_ctrl_c(signal, frame):
     sys.exit(130)  # 130 is standard exit code for ctrl-c
 
 
-gyroscope = LSM6DS33
+gyroscope = LSM6DS33()
 
 # This will capture exit when using Ctrl-C
 signal.signal(signal.SIGINT, handle_ctrl_c)
