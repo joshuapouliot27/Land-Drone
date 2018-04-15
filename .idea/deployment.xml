@@ -5,7 +5,7 @@
       <paths name="raspberry pi">
         <serverdata>
           <mappings>
-            <mapping deploy="Python_Projects/Land_Drone" local="$PROJECT_DIR$" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
