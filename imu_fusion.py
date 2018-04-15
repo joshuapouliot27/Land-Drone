@@ -29,9 +29,9 @@ class imu_fusion():
         self.MAGN_Z_MIN = 2001
         self.MAGN_Z_MAX = 9243
 
-        self.GYRO_AVERAGE_OFFSET_X = 0
-        self.GYRO_AVERAGE_OFFSET_Y = 0
-        self.GYRO_AVERAGE_OFFSET_Z = 0
+        self.GYRO_AVERAGE_OFFSET_X = 446.34455128205127
+        self.GYRO_AVERAGE_OFFSET_Y = -574.0839954597049
+        self.GYRO_AVERAGE_OFFSET_Z = -723.813596491229
 
         self.GRAVITY = 256.0  # "1G reference" used for DCM filter and accelerometer calibration
 
