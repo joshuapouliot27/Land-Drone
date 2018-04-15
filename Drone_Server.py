@@ -377,13 +377,18 @@ def is_proper_direction():
 
 
 def check_constant_speed():
-    accel_data = accelerometer_gyroscope.get_accelerometer_data()
-    ACCx = accel_data.x
-    ACCy = accel_data.y
-    ACCz = accel_data.z
-    accXnorm = (ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)) + accelerometer_offset_x
-    accYnorm = (ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)) + accelerometer_offset_y
-    if math.fabs(accXnorm) < accelerometer_threshold and math.fabs(accYnorm) < accelerometer_threshold:
+    accelerometer_data = accelerometer_gyroscope.get_accelerometer_data()
+    accelerometer_x = accelerometer_data.x
+    accelerometer_y = accelerometer_data.y
+    accelerometer_z = accelerometer_data.z
+    accelerometer_x_norm = (accelerometer_x / math.sqrt(accelerometer_x * accelerometer_x
+                                                        + accelerometer_y * accelerometer_y
+                                                        + accelerometer_z * accelerometer_z)) + accelerometer_offset_x
+    accelerometer_y_norm = (accelerometer_y / math.sqrt(accelerometer_x * accelerometer_x
+                                                        + accelerometer_y * accelerometer_y
+                                                        + accelerometer_z * accelerometer_z)) + accelerometer_offset_y
+    if math.fabs(accelerometer_x_norm) < accelerometer_threshold \
+            and math.fabs(accelerometer_y_norm) < accelerometer_threshold:
         return True
     else:
         return False
@@ -485,7 +490,7 @@ def main_loop():
                 and current_pwm > 0:
             print("stopping motion")
             set_motor_speed(0)
-        time.sleep(1/main_loop_frequency)
+        time.sleep(1 / main_loop_frequency)
 
 
 try:
