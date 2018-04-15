@@ -82,9 +82,9 @@ class HeadingCalculator:
         magn_data.z -= (self.magZmin + self.magZmax) / 2
 
         # Apply soft iron calibration
-        magn_data.x = (magn_data.x - self.magXmin) / (self.magXmax - self.magXmin) * 2 - 1
-        magn_data.y = (magn_data.y - self.magYmin) / (self.magYmax - self.magYmin) * 2 - 1
-        magn_data.z = (magn_data.z - self.magZmin) / (self.magZmax - self.magZmin) * 2 - 1
+        #magn_data.x = (magn_data.x - self.magXmin) / (self.magXmax - self.magXmin) * 2 - 1
+        #magn_data.y = (magn_data.y - self.magYmin) / (self.magYmax - self.magYmin) * 2 - 1
+        #magn_data.z = (magn_data.z - self.magZmin) / (self.magZmax - self.magZmin) * 2 - 1
 
         # Calculate loop Period(LP). How long between Gyro Reads
         self.b = datetime.datetime.now() - self.a
@@ -131,7 +131,7 @@ class HeadingCalculator:
         ####################################################################
         # If IMU is upside down, then use this line.  It isnt needed if the
         # IMU is the correct way up
-        magn_data.y *= -1
+        # magn_data.y *= -1
         #
         ############################ END ##################################
 
@@ -150,14 +150,14 @@ class HeadingCalculator:
         ###################Calculate pitch and roll#########################
         ####################################################################
         # Us these two lines when the IMU is up the right way. Skull logo is facing down
-        # pitch = math.asin(accXnorm)
-        # roll = -math.asin(accYnorm / math.cos(pitch))
+        pitch = math.asin(accXnorm)
+        roll = -math.asin(accYnorm / math.cos(pitch))
         #
         # Us these four lines when the IMU is upside down. Skull logo is facing up
-        accXnorm = -accXnorm  # flip Xnorm as the IMU is upside down
-        accYnorm = -accYnorm  # flip Ynorm as the IMU is upside down
-        pitch = math.asin(accXnorm)
-        roll = math.asin(accYnorm / math.cos(pitch))
+        # accXnorm = -accXnorm  # flip Xnorm as the IMU is upside down
+        # accYnorm = -accYnorm  # flip Ynorm as the IMU is upside down
+        # pitch = math.asin(accXnorm)
+        # roll = math.asin(accYnorm / math.cos(pitch))
         #
         ############################ END ##################################
 
