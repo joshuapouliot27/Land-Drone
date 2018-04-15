@@ -2,11 +2,12 @@ import time, math
 from LIS3MDL import LIS3MDL
 from LSM6DS33 import LSM6DS33
 
+
 class imu_fusion():
 
     def __init__(self, acc_gyr, magn):
 
-        self.GYRO_GAIN = 0.06957  # Same gain on all axes
+        self.GYRO_GAIN = 0.00875  # Same gain on all axes
 
         self.Kp_ROLLPITCH = 0.02
         self.Ki_ROLLPITCH = 0.00002
@@ -21,21 +22,16 @@ class imu_fusion():
         self.ACCEL_Z_MIN = -294
         self.ACCEL_Z_MAX = 269
 
-        self.MAGN_X_MIN = -600
-        self.MAGN_X_MAX = 600
-        self.MAGN_Y_MIN = -600
-        self.MAGN_Y_MAX = 600
-        self.MAGN_Z_MIN = -600
-        self.MAGN_Z_MAX = 600
+        self.MAGN_X_MIN = -3091
+        self.MAGN_X_MAX = 4233
+        self.MAGN_Y_MIN = -5348
+        self.MAGN_Y_MAX = 1944
+        self.MAGN_Z_MIN = 2001
+        self.MAGN_Z_MAX = 9243
 
         self.GYRO_AVERAGE_OFFSET_X = 0
         self.GYRO_AVERAGE_OFFSET_Y = 0
         self.GYRO_AVERAGE_OFFSET_Z = 0
-
-        self.CALIBRATION__MAGN_USE_EXTENDED = False
-        self.magn_ellipsoid_center = [3.80526, -16.4455, 87.4052]
-        self.magn_ellipsoid_transform = [[0.970991, 0.00583310, -0.00265756], [0.00583310, 0.952958, 2.76726e-05],
-                                    [-0.00265756, 2.76726e-05, 0.999751]]
 
         self.GRAVITY = 256.0  # "1G reference" used for DCM filter and accelerometer calibration
 
@@ -53,246 +49,234 @@ class imu_fusion():
         self.MAGN_Y_SCALE = (100.0 / (self.MAGN_Y_MAX - self.MAGN_Y_OFFSET))
         self.MAGN_Z_SCALE = (100.0 / (self.MAGN_Z_MAX - self.MAGN_Z_OFFSET))
 
-        self.magn = magn
-        self.gyro_accel = acc_gyr
+        self.magnetometer = magn
+        self.gyroscope_accelerometer = acc_gyr
 
         # Sensor variables
-        self.accel = [0, 0, 0]  # Actually stores the NEGATED acceleration (equals gravity, if board not moving).
-        self.accel_min = [0, 0, 0]
-        self.accel_max = [0, 0, 0]
+        self.accelerometer_data = [0.0, 0.0,
+                                   0.0]  # Actually stores the NEGATED acceleration (equals gravity, if board not moving).
+        self.accelerometer_min = [0.0, 0.0, 0.0]
+        self.accelerometer_max = [0.0, 0.0, 0.0]
 
-        self.magnetom = [0, 0, 0]
-        self.magnetom_min = [0, 0, 0]
-        self.magnetom_max = [0, 0, 0]
-        self.magnetom_tmp = [0, 0, 0]
+        self.magnetometer_data = [0.0, 0.0, 0.0]
+        self.magnetometer_min = [0.0, 0.0, 0.0]
+        self.magnetometer_max = [0.0, 0.0, 0.0]
+        self.magnetometer_tmp = [0.0, 0.0, 0.0]
 
-        self.gyro = [0, 0, 0]
-        self.gyro_average = [0, 0, 0]
+        self.gyro = [0.0, 0.0, 0.0]
+        self.gyro_average = [0.0, 0.0, 0.0]
         self.gyro_num_samples = 0
 
         # DCM variables
-        self.MAG_Heading = 0.0
-        self.Accel_Vector = [0, 0, 0]  # Store the acceleration in a vector
-        self.Gyro_Vector = [0, 0, 0]  # Store the gyros turn rate in a vector
-        self.Omega_Vector = [0, 0, 0]  # Corrected Gyro_Vector data
+        self.mag_heading = 0.0
+        self.accelerometer_vector = [0.0, 0.0, 0.0]  # Store the acceleration in a vector
+        self.gyroscope_vector = [0.0, 0.0, 0.0]  # Store the gyros turn rate in a vector
+        self.omega_vector = [0.0, 0.0, 0.0]  # Corrected Gyro_Vector data
 
-        self.Omega_P = [0, 0, 0]  # Omega Proportional correction
-        self.Omega_I = [0, 0, 0]  # Omega Integrator
-        self.Omega = [0, 0, 0]
-        self.errorRollPitch = [0, 0, 0]
-        self.errorYaw = [0, 0, 0]
-        self.DCM_Matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-        self.Update_Matrix = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
-        self.Temporary_Matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        self.omega_p = [0.0, 0.0, 0.0]  # Omega Proportional correction
+        self.omega_i = [0.0, 0.0, 0.0]  # Omega Integrator
+        self.omega = [0.0, 0.0, 0.0]
+        self.error_roll_pitch = [0.0, 0.0, 0.0]
+        self.error_yaw = [0.0, 0.0, 0.0]
+        self.dcm_matrix = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+        self.update_matrix = [[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]]
+        self.temporary_matrix = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
 
         # Euler angles
         self.yaw = 0.0
         self.pitch = 0.0
         self.roll = 0.0
 
-        # DCM timing in the main loop\
-        self.timestamp = 0
-        self.timestamp_old = 0
+        # DCM timing in the main loop
+        self.timestamp = 0.0
+        self.timestamp_old = 0.0
         self.G_Dt = 0.0
 
         # More output-state variables
-        self.curr_calibration_sensor = 0
+        self.curr_calibration_sensor = 0.0
         self.reset_calibration_session_flag = True
-        self.num_accel_errors = 0
-        self.num_magn_errors = 0
-        self.num_gyro_errors = 0
+        self.num_accel_errors = 0.0
+        self.num_magn_errors = 0.0
+        self.num_gyro_errors = 0.0
 
         self.setup()
 
-
-    def TO_RAD(self, x):
+    def to_radians(self, x):
         return x * 0.01745329252
 
+    def gyroscope_scaled_radians(self, x):
+        return x * self.to_radians(self.GYRO_GAIN)
 
-    def GYRO_SCALED_RAD(self, x):
-        return x * self.TO_RAD(self.GYRO_GAIN)
-
-
-    def Normalize(self):
+    def normalize(self):
         error = 0
         temporary = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         renorm = 0
 
-        error = -self.Vector_Dot_Product(self.DCM_Matrix[0], self.DCM_Matrix[1]) * .5  # eq.19
+        error = -self.vector_dot_product(self.dcm_matrix[0], self.dcm_matrix[1]) * .5  # eq.19
 
-        temporary[0] = self.Vector_Scale(self.DCM_Matrix[1], error)  # eq.19
-        temporary[1] = self.Vector_Scale(self.DCM_Matrix[0], error)  # eq.19
+        temporary[0] = self.vector_scale(self.dcm_matrix[1], error)  # eq.19
+        temporary[1] = self.vector_scale(self.dcm_matrix[0], error)  # eq.19
 
-        temporary[0] = self.Vector_Add(temporary[0], self.DCM_Matrix[0])  # eq.19
-        temporary[1] = self.Vector_Add(temporary[1], self.DCM_Matrix[1])  # eq.19
+        temporary[0] = self.vector_add(temporary[0], self.dcm_matrix[0])  # eq.19
+        temporary[1] = self.vector_add(temporary[1], self.dcm_matrix[1])  # eq.19
 
-        temporary[2] = self.Vector_Cross_Product(temporary[0], temporary[1])  # c= a x b #eq.20
+        temporary[2] = self.vector_cross_product(temporary[0], temporary[1])  # c= a x b #eq.20
 
-        renorm = 0.5 * (3 - self.Vector_Dot_Product(temporary[0], temporary[0]))  # eq.21
-        self.DCM_Matrix[0] = self.Vector_Scale(temporary[0], renorm)
+        renorm = 0.5 * (3 - self.vector_dot_product(temporary[0], temporary[0]))  # eq.21
+        self.dcm_matrix[0] = self.vector_scale(temporary[0], renorm)
 
-        renorm = 0.5 * (3 - self.Vector_Dot_Product(temporary[1], temporary[1]))  # eq.21
-        self.DCM_Matrix[1] = self.Vector_Scale(temporary[1], renorm)
+        renorm = 0.5 * (3 - self.vector_dot_product(temporary[1], temporary[1]))  # eq.21
+        self.dcm_matrix[1] = self.vector_scale(temporary[1], renorm)
 
-        renorm = 0.5 * (3 - self.Vector_Dot_Product(temporary[2], temporary[2]))  # eq.21
-        self.DCM_Matrix[2] = self.Vector_Scale(temporary[2], renorm)
+        renorm = 0.5 * (3 - self.vector_dot_product(temporary[2], temporary[2]))  # eq.21
+        self.dcm_matrix[2] = self.vector_scale(temporary[2], renorm)
 
-
-    def Drift_correction(self):
-        mag_heading_x = 0
-        mag_heading_y = 0
-        # Compensation the Roll, Pitch and Yaw drift.
-        Scaled_Omega_P = [0, 0, 0]
-        Scaled_Omega_I = [0, 0, 0]
-        Accel_magnitude = 0
-        Accel_weight = 0
-
-        # *****Roll and Pitch***************
-
+    def drift_correction(self):
         # Calculate the magnitude of the accelerometer vector
-        Accel_magnitude = math.sqrt(
-            self.Accel_Vector[0] * self.Accel_Vector[0] + self.Accel_Vector[1] * self.Accel_Vector[1]
-            + self.Accel_Vector[2] * self.Accel_Vector[2]);
-        Accel_magnitude = Accel_magnitude / self.GRAVITY;  # Scale to gravity.
+        accelerometer_magnitude = math.sqrt(
+            self.accelerometer_vector[0] * self.accelerometer_vector[0] + self.accelerometer_vector[1] *
+            self.accelerometer_vector[1]
+            + self.accelerometer_vector[2] * self.accelerometer_vector[2])
+        accelerometer_magnitude = accelerometer_magnitude / self.GRAVITY  # Scale to gravity.
         # Dynamic weighting of accelerometer info (reliability filter)
         # Weight for accelerometer info (<0.5G = 0.0, 1G = 1.0 , >1.5G = 0.0)
-        Accel_weight = min(max(1 - 2 * abs(1 - Accel_magnitude), 1), 0)  #
+        accelerometer_weight = min(max(1 - 2 * abs(1 - accelerometer_magnitude), 1), 0)  #
 
-        errorRollPitch = self.Vector_Cross_Product(self.Accel_Vector, self.DCM_Matrix[2])  # adjust the ground of reference
-        Omega_P = self.Vector_Scale(errorRollPitch, self.Kp_ROLLPITCH * Accel_weight)
+        error_roll_pitch = self.vector_cross_product(self.accelerometer_vector,
+                                                     self.dcm_matrix[2])  # adjust the ground of reference
+        self.omega_p = self.vector_scale(error_roll_pitch, self.Kp_ROLLPITCH * accelerometer_weight)
 
-        Scaled_Omega_I = self.Vector_Scale(errorRollPitch, self.Ki_ROLLPITCH * Accel_weight)
-        Omega_I = self.Vector_Add(self.Omega_I, Scaled_Omega_I)
+        scaled_omega_i = self.vector_scale(error_roll_pitch, self.Ki_ROLLPITCH * accelerometer_weight)
+        self.omega_i = self.vector_add(self.omega_i, scaled_omega_i)
 
         # *****YAW***************
         # We make the gyro YAW drift correction based on compass magnetic heading
 
-        mag_heading_x = math.cos(self.MAG_Heading)
-        mag_heading_y = math.sin(self.MAG_Heading)
-        errorCourse = (self.DCM_Matrix[0][0] * mag_heading_y) - (self.DCM_Matrix[1][0] * mag_heading_x)  # Calculating YAW error
-        errorYaw = self.Vector_Scale(self.DCM_Matrix[2],
-                            errorCourse)  # Applys the yaw correction to the XYZ rotation of the aircraft, depeding the position.
+        mag_heading_x = math.cos(self.mag_heading)
+        mag_heading_y = math.sin(self.mag_heading)
+        error_course = (self.dcm_matrix[0][0] * mag_heading_y) - (
+                self.dcm_matrix[1][0] * mag_heading_x)  # Calculating YAW error
+        error_yaw = self.vector_scale(self.dcm_matrix[2],
+                                      error_course)  # Applys the yaw correction to the XYZ rotation of the aircraft, depeding the position.
 
-        Scaled_Omega_P = self.Vector_Scale(errorYaw, self.Kp_YAW)  # .01proportional of YAW.
-        self.Omega_P = self.Vector_Add(Omega_P, Scaled_Omega_P)  # Adding  Proportional.
+        scaled_omega_p = self.vector_scale(error_yaw, self.Kp_YAW)  # .01proportional of YAW.
+        self.omega_p = self.vector_add(self.omega_p, scaled_omega_p)  # Adding  Proportional.
 
-        Scaled_Omega_I = self.Vector_Scale(errorYaw, self.Ki_YAW)  # .00001Integrator
-        self.Omega_I = self.Vector_Add(Omega_I, Scaled_Omega_I)  # adding integrator to the Omega_I
+        scaled_omega_i = self.vector_scale(error_yaw, self.Ki_YAW)  # .00001Integrator
+        self.omega_i = self.vector_add(self.omega_i, scaled_omega_i)  # adding integrator to the omega_i
 
+    def matrix_update(self):
+        self.gyroscope_vector[0] = self.gyroscope_scaled_radians(self.gyro[0])  # gyro x roll
+        self.gyroscope_vector[1] = self.gyroscope_scaled_radians(self.gyro[1])  # gyro y pitch
+        self.gyroscope_vector[2] = self.gyroscope_scaled_radians(self.gyro[2])  # gyro z yaw
 
-    def Matrix_update(self):
-        self.Gyro_Vector[0] = self.GYRO_SCALED_RAD(self.gyro[0])  # gyro x roll
-        self.Gyro_Vector[1] = self.GYRO_SCALED_RAD(self.gyro[1])  # gyro y pitch
-        self.Gyro_Vector[2] = self.GYRO_SCALED_RAD(self.gyro[2])  # gyro z yaw
+        self.accelerometer_vector[0] = self.accelerometer_data[0]
+        self.accelerometer_vector[1] = self.accelerometer_data[1]
+        self.accelerometer_vector[2] = self.accelerometer_data[2]
 
-        self.Accel_Vector[0] = self.accel[0]
-        self.Accel_Vector[1] = self.accel[1]
-        self. Accel_Vector[2] = self.accel[2]
-
-        self.Omega = self.Vector_Add(self.Gyro_Vector, self.Omega_I)  # adding proportional term
-        self.Omega_Vector = self.Vector_Add(self.Omega, self.Omega_P)  # adding Integrator term
+        self.omega = self.vector_add(self.gyroscope_vector, self.omega_i)  # adding proportional term
+        self.omega_vector = self.vector_add(self.omega, self.omega_p)  # adding Integrator term
 
         # Use drift correction
-        self.Update_Matrix[0][0] = 0
-        self.Update_Matrix[0][1] = -self.G_Dt * self.Omega_Vector[2]  # -z
-        self.Update_Matrix[0][2] = self.G_Dt * self.Omega_Vector[1]  # y
-        self.Update_Matrix[1][0] = self.G_Dt * self.Omega_Vector[2]  # z
-        self.Update_Matrix[1][1] = 0
-        self.Update_Matrix[1][2] = -self.G_Dt * self.Omega_Vector[0]  # -x
-        self.Update_Matrix[2][0] = -self.G_Dt * self.Omega_Vector[1]  # -y
-        self.Update_Matrix[2][1] = self.G_Dt * self.Omega_Vector[0]  # x
-        self.Update_Matrix[2][2] = 0
+        self.update_matrix[0][0] = 0
+        self.update_matrix[0][1] = -self.G_Dt * self.omega_vector[2]  # -z
+        self.update_matrix[0][2] = self.G_Dt * self.omega_vector[1]  # y
+        self.update_matrix[1][0] = self.G_Dt * self.omega_vector[2]  # z
+        self.update_matrix[1][1] = 0
+        self.update_matrix[1][2] = -self.G_Dt * self.omega_vector[0]  # -x
+        self.update_matrix[2][0] = -self.G_Dt * self.omega_vector[1]  # -y
+        self.update_matrix[2][1] = self.G_Dt * self.omega_vector[0]  # x
+        self.update_matrix[2][2] = 0
 
-        self.Matrix_Multiply(self.DCM_Matrix, self.Update_Matrix, self.Temporary_Matrix)  # a*b=c
+        self.matrix_multiply(self.dcm_matrix, self.update_matrix, self.temporary_matrix)  # a*b=c
 
         for x in range(0, 3):
             for y in range(0, 3):
-                self.DCM_Matrix[x][y] += self.Temporary_Matrix[x][y]
+                self.dcm_matrix[x][y] += self.temporary_matrix[x][y]
 
+    def euler_angles(self):
+        self.pitch = -math.asin(self.dcm_matrix[2][0])
+        self.roll = math.atan2(self.dcm_matrix[2][1], self.dcm_matrix[2][2])
+        self.yaw = math.atan2(self.dcm_matrix[1][0], self.dcm_matrix[0][0])
 
-    def Euler_angles(self):
-        self.pitch = -math.asin(self.DCM_Matrix[2][0])
-        self.roll = math.atan2(self.DCM_Matrix[2][1], self.DCM_Matrix[2][2])
-        self.yaw = math.atan2(self.DCM_Matrix[1][0], self.DCM_Matrix[0][0])
-
-
-    def Compass_Heading(self):
+    def compass_heading(self):
         cos_roll = math.cos(self.roll)
         sin_roll = math.sin(self.roll)
         cos_pitch = math.cos(self.pitch)
         sin_pitch = math.sin(self.pitch)
 
         # Tilt compensated magnetic field X
-        mag_x = self.magnetom[0] * cos_pitch + self.magnetom[1] * sin_roll * sin_pitch + self.magnetom[2] * cos_roll * sin_pitch
+        mag_x = self.magnetometer_data[0] * cos_pitch + self.magnetometer_data[1] * sin_roll * sin_pitch \
+                + self.magnetometer_data[2] * cos_roll * sin_pitch
         # Tilt compensated magnetic field Y
-        mag_y = self.magnetom[1] * cos_roll - self.magnetom[2] * sin_roll
+        mag_y = self.magnetometer_data[1] * cos_roll - self.magnetometer_data[2] * sin_roll
         # Magnetic Heading
-        MAG_Heading = math.atan2(-mag_y, mag_x)
-
+        self.mag_heading = math.atan2(-mag_y, mag_x)
 
     # Computes the dot product of two vectors
-    def Vector_Dot_Product(self, v1, v2):
+    @staticmethod
+    def vector_dot_product(v1, v2):
         result = 0.0
         for c in range(0, 3):
             result += v1[c] * v2[c]
         return result
 
-
     # Computes the cross product of two vectors
     # out has to different from v1 and v2 (no in-place)!
-    def Vector_Cross_Product(self, v1, v2):
+    @staticmethod
+    def vector_cross_product(v1, v2):
         out = [0, 0, 0]
         out[0] = (v1[1] * v2[2]) - (v1[2] * v2[1])
         out[1] = (v1[2] * v2[0]) - (v1[0] * v2[2])
         out[2] = (v1[0] * v2[1]) - (v1[1] * v2[0])
         return out
 
-
     # Multiply the vector by a scalar
-    def Vector_Scale(self, v, scale):
+    @staticmethod
+    def vector_scale(v, scale):
         out = [0, 0, 0]
         for c in range(0, 3):
             out[c] = v[c] * scale
         return out
 
-
     # Adds two vectors
-    def Vector_Add(self, v1, v2):
+    @staticmethod
+    def vector_add(v1, v2):
         out = [0, 0, 0]
         for c in range(0, 3):
             out[c] = v1[c] + v2[c]
         return out
 
-
     # Multiply two 3x3 matrices: out = a * b
     # out has to different from a and b (no in-place)!
-    def Matrix_Multiply(self, a, b, out):
+    @staticmethod
+    def matrix_multiply(a, b, out):
         for x in range(0, 3):
             for y in range(0, 3):
                 out[x][y] = a[x][0] * b[0][y] + a[x][1] * b[1][y] + a[x][2] * b[2][y]
 
-
     # Multiply 3x3 matrix with vector: out = a * b
     # out has to different from b (no in-place)!
-    def Matrix_Vector_Multiply(self, a, b, out):
+    @staticmethod
+    def matrix_vector_multiply(a, b, out):
         for x in range(0, 3):
             out[x] = a[x][0] * b[0] + a[x][1] * b[1] + a[x][2] * b[2]
 
-
     # Init rotation matrix using euler angles
-    def init_rotation_matrix(self, m, yaw, pitch, roll):
+    @staticmethod
+    def init_rotation_matrix(m, yaw, pitch, roll):
         c1 = math.cos(roll)
         s1 = math.sin(roll)
         c2 = math.cos(pitch)
-        s2 = math.sin(pitch);
+        s2 = math.sin(pitch)
         c3 = math.cos(yaw)
         s3 = math.sin(yaw)
 
-        m[0][0] = c2 * c3;
+        m[0][0] = c2 * c3
         m[0][1] = c3 * s1 * s2 - c1 * s3
         m[0][2] = s1 * s3 + c1 * c3 * s2
 
-        m[1][0] = c2 * s3;
+        m[1][0] = c2 * s3
         m[1][1] = c1 * c3 + s1 * s2 * s3
         m[1][2] = c1 * s2 * s3 - c3 * s1
 
@@ -300,112 +284,112 @@ class imu_fusion():
         m[2][1] = c2 * s1
         m[2][2] = c1 * c2
 
-
-    def TO_DEG(self, x):
-        return (x * 57.2957795131)  # *180/pi
-
+    @staticmethod
+    def to_degrees(x):
+        return x * 57.2957795131  # *180/pi
 
     def output_angles(self):
-        print("#YPR= " + str(int(self.TO_DEG(self.yaw))) + " " + str(int(self.TO_DEG(self.pitch)))
-              + " " + str(int(self.TO_DEG(self.roll))))
+        print("#YPR= " + str(int(self.to_degrees(self.yaw))) + " " + str(int(self.to_degrees(self.pitch)))
+              + " " + str(int(self.to_degrees(self.roll))))
 
     def read_sensors(self):
-        gyro_data = self.gyro_accel.get_gyroscope_data()
-        self.gyro = (gyro_data.x, gyro_data.y, gyro_data.z)
-        accel_data = self.gyro_accel.get_accelerometer_data()
-        self.accel = (accel_data.x, accel_data.y, accel_data.z)  # Read accelerometer
-        magn_data = self.magn.get_magnetometer_data()
-        self.magnetom = (magn_data.x, magn_data.y, magn_data.z)  # Read magnetometer
-
+        gyro_data = self.gyroscope_accelerometer.get_gyroscope_data()
+        self.gyro = [gyro_data.x, gyro_data.y, gyro_data.z]
+        accel_data = self.gyroscope_accelerometer.get_accelerometer_data()
+        self.accelerometer_data = [accel_data.x, accel_data.y, accel_data.z]  # Read accelerometer
+        magn_data = self.magnetometer.get_magnetometer_data()
+        self.magnetometer_data = [magn_data.x, magn_data.y, magn_data.z]  # Read magnetometer
 
     # Read every sensor and record a time stamp
     # Init DCM with unfiltered orientation
     # TODO re-init global vars?
 
-    def millis(self):
+    @staticmethod
+    def millis():
         return round(time.time() * 1000)
 
-
     def reset_sensor_fusion(self):
-        temp1 = [0, 0, 0]
-        temp2 = [0, 0, 0]
-        xAxis = [1.0, 0.0, 0.0]
+        x_axis = [1.0, 0.0, 0.0]
 
         self.read_sensors()
         self.timestamp = self.millis()
 
         # GET PITCH
         # Using y-z-plane-component/x-component of gravity vector
-        self.pitch = -math.atan2(self.accel[0], math.sqrt(self.accel[1] * self.accel[1] + self.accel[2] * self.accel[2]))
+        self.pitch = -math.atan2(self.accelerometer_data[0],
+                                 math.sqrt(
+                                     self.accelerometer_data[1] * self.accelerometer_data[1] + self.accelerometer_data[
+                                         2] * self.accelerometer_data[2]))
 
         # GET ROLL
         # Compensate pitch of gravity vector
-        temp1 = self.Vector_Cross_Product(self.accel, xAxis)
-        temp2 = self.Vector_Cross_Product(xAxis, temp1)
+        temp1 = self.vector_cross_product(self.accelerometer_data, x_axis)
+        temp2 = self.vector_cross_product(x_axis, temp1)
         # Normally using x-z-plane-component/y-component of compensated gravity vector
         # roll = atan2(temp2[1], sqrt(temp2[0] * temp2[0] + temp2[2] * temp2[2]));
         # Since we compensated for pitch, x-z-plane-component equals z-component:
         self.roll = math.atan2(temp2[1], temp2[2])
 
         # GET YAW
-        self.Compass_Heading()
-        self.yaw = self.MAG_Heading
+        self.compass_heading()
+        self.yaw = self.mag_heading
 
         # Init rotation matrix
-        self.init_rotation_matrix(self.DCM_Matrix, self.yaw, self.pitch, self.roll)
-
+        self.init_rotation_matrix(self.dcm_matrix, self.yaw, self.pitch, self.roll)
 
     # Apply calibration to raw sensor readings
     def compensate_sensor_errors(self):
-        self.accel[0] = (self.accel[0] - self.ACCEL_X_OFFSET) * self.ACCEL_X_SCALE
-        self.accel[1] = (self.accel[1] - self.ACCEL_Y_OFFSET) * self.ACCEL_Y_SCALE
-        self.accel[2] = (self.accel[2] - self.ACCEL_Z_OFFSET) * self.ACCEL_Z_SCALE
+        self.accelerometer_data[0] = (self.accelerometer_data[0] - self.ACCEL_X_OFFSET) * self.ACCEL_X_SCALE
+        self.accelerometer_data[1] = (self.accelerometer_data[1] - self.ACCEL_Y_OFFSET) * self.ACCEL_Y_SCALE
+        self.accelerometer_data[2] = (self.accelerometer_data[2] - self.ACCEL_Z_OFFSET) * self.ACCEL_Z_SCALE
 
-        # Compensate magnetometer error
-        if self.CALIBRATION__MAGN_USE_EXTENDED:
-            magentom_tmp = self.magnetom.copy()
-            for i in range(0, 3):
-                magentom_tmp[i] = self.magnetom[i] - self.magn_ellipsoid_center[i]
-                self.Matrix_Vector_Multiply(self.magn_ellipsoid_transform, magentom_tmp, self.magnetom)
-        else:
-            self.magnetom[0] = (self.magnetom[0] - self.MAGN_X_OFFSET) * self.MAGN_X_SCALE
-            self.magnetom[1] = (self.magnetom[1] - self.MAGN_Y_OFFSET) * self.MAGN_Y_SCALE
-            self.magnetom[2] = (self.magnetom[2] - self.MAGN_Z_OFFSET) * self.MAGN_Z_SCALE
+        self.magnetometer_data[0] = (self.magnetometer_data[0] - self.MAGN_X_OFFSET) * self.MAGN_X_SCALE
+        self.magnetometer_data[1] = (self.magnetometer_data[1] - self.MAGN_Y_OFFSET) * self.MAGN_Y_SCALE
+        self.magnetometer_data[2] = (self.magnetometer_data[2] - self.MAGN_Z_OFFSET) * self.MAGN_Z_SCALE
 
         # Compensate gyroscope error
         self.gyro[0] -= self.GYRO_AVERAGE_OFFSET_X
         self.gyro[1] -= self.GYRO_AVERAGE_OFFSET_Y
         self.gyro[2] -= self.GYRO_AVERAGE_OFFSET_Z
 
-
     # Reset calibration session if reset_calibration_session_flag is set
     def check_reset_calibration_session(self):
         # Raw sensor values have to be read already, but no error compensation applied
         # Reset this calibration session?
-        if self.reset_calibration_session_flag == False:
+        if not self.reset_calibration_session_flag:
             return
 
         # Reset acc and mag calibration variables
         for i in range(0, 3):
-            self.accel_min[i] = self.accel_max[i] = self.accel[i]
-            self.magnetom_min[i] = self.magnetom_max[i] = self.magnetom[i]
+            self.accelerometer_min[i] = self.accelerometer_data[i]
+            self.accelerometer_max[i] = self.accelerometer_data[i]
+            self.magnetometer_min[i] = self.magnetometer_data[i]
+            self.magnetometer_max[i] = self.magnetometer_data[i]
 
         # Reset gyro calibration variables
         self.gyro_num_samples = 0  # Reset gyro calibration averaging
-        self.gyro_average[0] = self.gyro_average[1] = self.gyro_average[2] = 0.0
+        self.gyro_average[0] = 0.0
+        self.gyro_average[1] = 0.0
+        self.gyro_average[2] = 0.0
 
         self.reset_calibration_session_flag = False
 
     def get_heading(self):
-        return self
-
+        magnetometer_x_component = self.magnetometer_data[0] * math.cos(self.pitch) \
+                                   + self.magnetometer_data[2] * math.sin(self.pitch)
+        magnetometer_y_component = self.magnetometer_data[0] * math.sin(self.roll) * math.sin(self.pitch) \
+                                   + self.magnetometer_data[1] * math.cos(self.roll) \
+                                   - self.magnetometer_data[2] * math.sin(self.roll) * math.cos(self.pitch)
+        tilt_compensated_heading = math.degrees(math.atan2(magnetometer_y_component, magnetometer_x_component))
+        if tilt_compensated_heading < 0:
+            tilt_compensated_heading += 360
+        return tilt_compensated_heading
 
     def setup(self):
         self.read_sensors()
         # Read sensors, init DCM algorithm
         time.sleep(2)  # Give sensors enough time to collect data
         self.reset_sensor_fusion()
-
 
     # Main loop
     def loop(self):
@@ -424,10 +408,10 @@ class imu_fusion():
             self.compensate_sensor_errors()
 
             # Run DCM algorithm
-            self.Compass_Heading()  # Calculate magnetic heading
-            self.Matrix_update()
-            self.Normalize()
-            self.Drift_correction()
-            self.Euler_angles()
+            self.compass_heading()  # Calculate magnetic heading
+            self.matrix_update()
+            self.normalize()
+            self.drift_correction()
+            self.euler_angles()
 
             self.output_angles()

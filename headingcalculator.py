@@ -48,7 +48,7 @@ class HeadingCalculator:
 
         self.magn = magnetometer
         self.gyro_accel = gyroscope_accelerometer
-        self.olx_mag_value = Vector(0, 0, 0)
+        self.old_mag_value = Vector(0, 0, 0)
         self.old_acc_value = Vector(0, 0, 0)
 
         self.mag_lpf_factor = 0.4
@@ -66,7 +66,7 @@ class HeadingCalculator:
         #magn_data.y = magn_data.y * self.mag_lpf_factor + self.olx_mag_value.y * (1 - self.mag_lpf_factor)
         #magn_data.z = magn_data.z * self.mag_lpf_factor + self.olx_mag_value.z * (1 - self.mag_lpf_factor)
         self.old_acc_value = acc_data
-        self.olx_mag_value = magn_data
+        self.old_mag_value = magn_data
 
         magn_x_offset = (self.magXmin + self.magXmax) / 2
         magn_y_offset = (self.magYmin + self.magYmax) / 2
