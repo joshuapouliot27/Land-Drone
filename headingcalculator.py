@@ -58,13 +58,13 @@ class HeadingCalculator:
     def calculate_tilt_compensated_heading(self):
         # Read the accelerometer,gyroscope and magnetometer values
         acc_data = self.gyro_accel.get_accelerometer_data()
-        acc_data.x = acc_data.x * self.acc_lpf_factor + self.old_acc_value.x * (1 - self.acc_lpf_factor)
-        acc_data.y = acc_data.y * self.acc_lpf_factor + self.old_acc_value.y * (1 - self.acc_lpf_factor)
-        acc_data.z = acc_data.z * self.acc_lpf_factor + self.old_acc_value.z * (1 - self.acc_lpf_factor)
+        #acc_data.x = acc_data.x * self.acc_lpf_factor + self.old_acc_value.x * (1 - self.acc_lpf_factor)
+        #acc_data.y = acc_data.y * self.acc_lpf_factor + self.old_acc_value.y * (1 - self.acc_lpf_factor)
+        #acc_data.z = acc_data.z * self.acc_lpf_factor + self.old_acc_value.z * (1 - self.acc_lpf_factor)
         magn_data = self.magn.get_magnetometer_data()
-        magn_data.x = magn_data.x * self.mag_lpf_factor + self.olx_mag_value.x * (1 - self.mag_lpf_factor)
-        magn_data.y = magn_data.y * self.mag_lpf_factor + self.olx_mag_value.y * (1 - self.mag_lpf_factor)
-        magn_data.z = magn_data.z * self.mag_lpf_factor + self.olx_mag_value.z * (1 - self.mag_lpf_factor)
+        #magn_data.x = magn_data.x * self.mag_lpf_factor + self.olx_mag_value.x * (1 - self.mag_lpf_factor)
+        #magn_data.y = magn_data.y * self.mag_lpf_factor + self.olx_mag_value.y * (1 - self.mag_lpf_factor)
+        #magn_data.z = magn_data.z * self.mag_lpf_factor + self.olx_mag_value.z * (1 - self.mag_lpf_factor)
         self.old_acc_value = acc_data
         self.olx_mag_value = magn_data
 
