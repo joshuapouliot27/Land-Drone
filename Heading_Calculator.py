@@ -27,13 +27,8 @@
 #    MA 02111-1307, USA
 
 
-import os
-import time
-import math
-
-from LIS3MDL import LIS3MDL
-from LSM6DS33 import LSM6DS33
 import datetime
+import math
 
 
 class Heading_Calculator:
