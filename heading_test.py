@@ -9,7 +9,7 @@ magn = LIS3MDL()
 acc_gyr = LSM6DS33()
 calc = Heading_Calculator(acc_gyr, magn)
 points = set()
-max_points = 25
+max_points = 5
 while True:
     if len(points) >= max_points:
         for point in points:
