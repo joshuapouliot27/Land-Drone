@@ -68,15 +68,18 @@ class HeadingCalculator:
         self.old_acc_value = acc_data
         self.olx_mag_value = magn_data
 
-        # Apply hard iron calibration to compass
-        magn_data.x -= (self.magXmin + self.magXmax) / 2
-        magn_data.y -= (self.magYmin + self.magYmax) / 2
-        magn_data.z -= (self.magZmin + self.magZmax) / 2
+        magn_x_offset = (self.magXmin + self.magXmax) / 2
+        magn_y_offset = (self.magYmin + self.magYmax) / 2
+        magn_z_offset = (self.magZmin + self.magZmax) / 2
+        magn_avg_offset = (magn_z_offset + magn_y_offset + magn_x_offset) / 3
+        magn_scale_x = magn_avg_offset / magn_x_offset
+        magn_scale_y = magn_avg_offset / magn_y_offset
+        magn_scale_z = magn_avg_offset / magn_z_offset
 
-        # Apply soft iron calibration
-        magn_data.x = (magn_data.x - self.magXmin) / (self.magXmax - self.magXmin) * 2 - 1
-        magn_data.y = (magn_data.y - self.magYmin) / (self.magYmax - self.magYmin) * 2 - 1
-        magn_data.z = (magn_data.z - self.magZmin) / (self.magZmax - self.magZmin) * 2 - 1
+        # Apply calibration to compass
+        magn_data.x = (magn_data.x - magn_x_offset) * magn_scale_x
+        magn_data.y = (magn_data.y - magn_y_offset) * magn_scale_y
+        magn_data.z = (magn_data.z - magn_z_offset) * magn_scale_z
 
         # Convert Accelerometer values to degrees
         AccXangle = math.degrees(math.atan2(acc_data.y, acc_data.z) + math.pi)
