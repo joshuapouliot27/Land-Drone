@@ -3,7 +3,7 @@ import Math
 import logging
 
 from smbus2 import SMBus
-from sympy.vector import Vector
+from vectors import Vector
 
 
 class LIS3MDL:
