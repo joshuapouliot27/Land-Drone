@@ -374,7 +374,7 @@ class imu_fusion():
 
         self.reset_calibration_session_flag = False
 
-    def get_heading(self):
+    def get_true_heading(self):
         magnetometer_x_component = self.magnetometer_data[0] * math.cos(self.pitch) \
                                    + self.magnetometer_data[2] * math.sin(self.pitch)
         magnetometer_y_component = self.magnetometer_data[0] * math.sin(self.roll) * math.sin(self.pitch) \
