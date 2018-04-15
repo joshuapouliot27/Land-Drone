@@ -30,15 +30,18 @@
 import os
 import time
 import math
+
+from numpy.core.umath import degrees
+
 from LIS3MDL import LIS3MDL
 from LSM6DS33 import LSM6DS33
 import datetime
+from sympy import cos, sin, atan2, sqrt, asin, pi
 
 
 class Heading_Calculator:
     def __init__(self, gyroscope_accelerometer, magnetometer):
         self.RAD_TO_DEG = 57.29578
-        self.M_PI = 3.14159265358979323846
         self.G_GAIN = 0.00875  # [deg/s/LSB]  If you change the dps for gyro, you need to update this value accordingly
 
         self.magXmax = 4149
@@ -118,8 +121,8 @@ class Heading_Calculator:
         self.gyroZangle += rate_gyr_z * LP
 
         # Convert Accelerometer values to degrees
-        AccXangle = (math.atan2(ACCy, ACCz) + self.M_PI) * self.RAD_TO_DEG
-        AccYangle = (math.atan2(ACCz, ACCx) + self.M_PI) * self.RAD_TO_DEG
+        AccXangle = degrees(atan2(ACCy, ACCz) + pi)
+        AccYangle = degrees(atan2(ACCz, ACCx) + pi)
 
         ####################################################################
         ######################Correct rotation value########################
@@ -138,39 +141,38 @@ class Heading_Calculator:
         ############################ END ##################################
 
         # Calculate heading
-        heading = 180 * math.atan2(MAGy, MAGx) / self.M_PI
+        heading = 180 * atan2(MAGy, MAGx) / pi
 
         # Only have our heading between 0 and 360
         if heading < 0:
             heading += 360
 
         # Normalize accelerometer raw values.
-        accXnorm = ACCx / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
-        accYnorm = ACCy / math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
+        accXnorm = ACCx / sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
+        accYnorm = ACCy / sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
 
         ####################################################################
         ###################Calculate pitch and roll#########################
         ####################################################################
         # Us these two lines when the IMU is up the right way. Skull logo is facing down
-        pitch = math.asin(accXnorm)
-        roll = -math.asin(accYnorm / math.cos(pitch))
+        pitch = asin(accXnorm)
+        roll = -asin(accYnorm / math.cos(pitch))
         #
         # Us these four lines when the IMU is upside down. Skull logo is facing up
         # accXnorm = -accXnorm				#flip Xnorm as the IMU is upside down
         # accYnorm = -accYnorm				#flip Ynorm as the IMU is upside down
-        # pitch = math.asin(accXnorm)
-        # roll = math.asin(accYnorm/math.cos(pitch))
+        # pitch = asin(accXnorm)
+        # roll = asin(accYnorm/math.cos(pitch))
         #
         ############################ END ##################################
 
         # Calculate the new tilt compensated values
-        magXcomp = MAGx * math.cos(pitch) + MAGz * math.sin(pitch)
-        magYcomp = MAGx * math.sin(roll) * math.sin(pitch) + MAGy * math.cos(roll) - MAGz * math.sin(roll) * math.cos(
-            pitch)
+        magnetometer_x_component = MAGx * cos(pitch) + MAGz * sin(pitch)
+        magnetometer_y_component = MAGx * sin(roll) * sin(pitch) + MAGy * cos(roll) - MAGz * sin(roll) * cos(pitch)
 
         # Calculate tilt compensated heading
-        tiltCompensatedHeading = 180 * math.atan2(magYcomp, magXcomp) / self.M_PI
+        tilt_compensated_heading = 180 * atan2(magnetometer_y_component, magnetometer_x_component) / pi
 
-        if tiltCompensatedHeading < 0:
-            tiltCompensatedHeading += 360
-        return tiltCompensatedHeading
+        if tilt_compensated_heading < 0:
+            tilt_compensated_heading += 360
+        return tilt_compensated_heading
