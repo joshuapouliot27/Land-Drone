@@ -18,4 +18,4 @@ while True:
     points.add(calc.calculate_tilt_compensated_heading())
     heading = math.fsum(points) / len(points)
     print("Heading: "+str(heading))
-    time.sleep(1/10)
+    time.sleep(1/5)
