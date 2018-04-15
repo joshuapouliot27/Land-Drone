@@ -38,6 +38,11 @@ a = datetime.datetime.now()
 gyro_x = set()
 gyro_y = set()
 gyro_z = set()
+time_start = time.time()
+while time.time() - time_start < 2:
+    a = gyroscope.get_gyroscope_data()
+    time.sleep(.05)
+
 try:
     while True:
 
