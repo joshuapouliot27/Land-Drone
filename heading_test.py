@@ -34,6 +34,13 @@ imu.setAccelEnable(True)
 imu.setCompassEnable(True)
 poll_interval = imu.IMUGetPollInterval()
 thread = Background_Thread(imu_loop)
+
+if not imu.getCompassCalibrationValid() or not imu.getCompassCalibrationEllipsoidValid():
+    print("COMPASS NOT CALIBRATED!")
+if not imu.getAccelCalibrationValid():
+    print("ACCELROMETER NOT CALIBRATED!")
+if not imu.IMUGyroBiasValid():
+    print("GYRO BIAS CALIBRATION NOT VALID!")
 # print("hold the imu still...")
 # while True:
 #     if imu.IMUGyroBiasValid():
@@ -53,6 +60,8 @@ while True:
     # heading = math.fsum(points) / len(points)
     data = imu.getIMUData()
     fusionPose = data["fusionPose"]
+    if not data["compassValid"]:
+        print("Compass data isn't valid!")
     compass = data["compass"]
     roll_rad = fusionPose[0]
     pitch_rad = fusionPose[1]
@@ -68,8 +77,8 @@ while True:
         heading += 360
     if heading > 360:
         heading -= 360
-    print(time.strftime("%X") + ("Compass: X: {:.5} Y: {:.5} Z: {:.5}"))
-    print(time.strftime("%X") + ("; Heading: {:.5}, Roll: {:.5}, Pitch: {:.5}, Yaw: {:.5}"
-                                 .format(heading, math.degrees(roll_rad), math.degrees(pitch_rad),
-                                         math.degrees(yaw_rad))))
+    print(time.strftime("%X") + ("Compass: X: {:.5} Y: {:.5} Z: {:.5}".format(x, y, compass[2])))
+    #print(time.strftime("%X") + ("; Heading: {:.5}, Roll: {:.5}, Pitch: {:.5}, Yaw: {:.5}"
+    #                             .format(heading, math.degrees(roll_rad), math.degrees(pitch_rad),
+    #                                     math.degrees(yaw_rad))))
     time.sleep(1 / 10)
