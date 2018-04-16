@@ -21,7 +21,7 @@ if not imu.IMUInit():
 # fus = imu_fusion(acc_gyr, magn)
 # points = set()
 # max_points = 5
-# thread = Background_Thread(fus.loop)
+thread = Background_Thread(imu.imu.IMURead)
 imu.setSlerpPower(0.02)
 imu.setGyroEnable(True)
 imu.setAccelEnable(True)
@@ -35,7 +35,6 @@ while True:
     # points.add(calc.calculate_tilt_compensated_heading())
     # points.add(fus.get_true_heading())
     # heading = math.fsum(points) / len(points)
-    imu.IMURead()
     data = imu.getIMUData()
     fusionPose = data["fusionPose"]
     roll_rad = fusionPose[0]
@@ -51,4 +50,4 @@ while True:
     print(time.strftime("%X") + ("; Heading: {:.5}, Roll: {:.5}, Pitch: {:.5}, Yaw: {:.5}"
                                  .format(heading, math.degrees(roll_rad), math.degrees(pitch_rad),
                                          math.degrees(yaw_rad))))
-    time.sleep(1 / 2)
+    time.sleep(1 / 10)
