@@ -21,7 +21,7 @@ if not imu.IMUInit():
 # fus = imu_fusion(acc_gyr, magn)
 # points = set()
 # max_points = 5
-thread = Background_Thread(imu.imu.IMURead)
+thread = Background_Thread(imu.IMURead)
 imu.setSlerpPower(0.02)
 imu.setGyroEnable(True)
 imu.setAccelEnable(True)
