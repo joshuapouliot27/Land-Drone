@@ -48,8 +48,8 @@ while True:
     roll_rad = fusionPose[0]
     pitch_rad = fusionPose[1]
     yaw_rad = fusionPose[2]
-    x = compass[x]
-    y = compass[y]
+    x = compass[0]
+    y = compass[1]
     heading = math.degrees(math.atan2(y, x))
     if yaw_rad < 0:
         yaw_rad += 2*math.pi
