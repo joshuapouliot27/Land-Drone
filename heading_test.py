@@ -25,4 +25,4 @@ while True:
     # heading = calc.calculate_tilt_compensated_heading()
     heading = fus.get_true_heading()
     print(time.strftime("%X") + "; Heading: " + str(heading))
-    time.sleep(1 / 5)
+    time.sleep(1 / 2)
