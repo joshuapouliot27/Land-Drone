@@ -23,17 +23,17 @@ if not imu.IMUInit():
 # fus = imu_fusion(acc_gyr, magn)
 # points = set()
 # max_points = 5
-def imu_loop():
-    while True:
-        imu.IMURead()
+#def imu_loop():
+#    while True:
+#        imu.IMURead()
 
 
-imu.setSlerpPower(0.98)
-imu.setGyroEnable(True)
-imu.setAccelEnable(True)
+#imu.setSlerpPower(0.98)
+#imu.setGyroEnable(True)
+#imu.setAccelEnable(True)
 imu.setCompassEnable(True)
 poll_interval = imu.IMUGetPollInterval()
-thread = Background_Thread(imu_loop)
+#thread = Background_Thread(imu_loop)
 
 if not imu.getCompassCalibrationValid() or not imu.getCompassCalibrationEllipsoidValid():
     print("COMPASS NOT CALIBRATED!")
@@ -58,6 +58,8 @@ while True:
     # points.add(calc.calculate_tilt_compensated_heading())
     # points.add(fus.get_true_heading())
     # heading = math.fsum(points) / len(points)
+
+    imu.IMURead()
     data = imu.getIMUData()
     fusionPose = data["fusionPose"]
     if not data["compassValid"]:
