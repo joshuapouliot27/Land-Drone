@@ -15,6 +15,8 @@ imu = RTIMU.RTIMU(rtimu)
 if not imu.IMUInit():
     print("IMU init failed!")
     exit(1)
+
+
 # magn = LIS3MDL()
 # acc_gyr = LSM6DS33()
 # calc = HeadingCalculator(acc_gyr, magn)
@@ -24,6 +26,8 @@ if not imu.IMUInit():
 def imu_loop():
     while True:
         imu.IMURead()
+
+
 thread = Background_Thread(imu_loop)
 imu.setSlerpPower(0.02)
 imu.setGyroEnable(True)
