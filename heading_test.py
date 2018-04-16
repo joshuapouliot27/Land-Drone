@@ -36,7 +36,7 @@ while True:
     # points.add(fus.get_true_heading())
     # heading = math.fsum(points) / len(points)
     data = imu.getIMUData()
-    fusionPose = data["fusionPost"]
+    fusionPose = data["fusionPose"]
     roll_rad = fusionPose[0]
     pitch_rad = fusionPose[1]
     yaw_rad = fusionPose[2]
