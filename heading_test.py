@@ -20,9 +20,9 @@ from LSM6DS33 import LSM6DS33
 magn = LIS3MDL()
 acc_gyr = LSM6DS33()
 calc = HeadingCalculator(acc_gyr, magn)
-fus = imu_fusion(acc_gyr, magn)
 points = set()
 max_points = 5
+
 # def imu_loop():
 #    while True:
 #        imu.IMURead()
@@ -42,7 +42,6 @@ while True:
             points.remove(point)
             break
     points.add(calc.calculate_tilt_compensated_heading())
-    points.add(fus.get_true_heading())
     heading = math.fsum(points) / len(points)
     print(time.strftime("%X") + ("; Heading: {:.5}".format(heading)))
     time.sleep(1 / 10)
