@@ -27,10 +27,7 @@ def handle_ctrl_c(signal, frame):
     sys.exit(130)  # 130 is standard exit code for ctrl-c
 
 
-accelerometer = LSM6DS33
-
-# This will capture exit when using Ctrl-C
-signal.signal(signal.SIGINT, handle_ctrl_c)
+accelerometer = LSM6DS33()
 
 a = datetime.datetime.now()
 
