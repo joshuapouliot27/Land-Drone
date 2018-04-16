@@ -288,9 +288,6 @@ class imu_fusion():
     def to_degrees(x):
         return x * 57.2957795131  # *180/pi
 
-    def output_angles(self):
-        print("#YPR= " + str(int(self.to_degrees(self.yaw))) + " " + str(int(self.to_degrees(self.pitch)))
-              + " " + str(int(self.to_degrees(self.roll))))
 
     def read_sensors(self):
         gyro_data = self.gyroscope_accelerometer.get_gyroscope_data()
@@ -414,5 +411,3 @@ class imu_fusion():
                 self.normalize()
                 self.drift_correction()
                 self.euler_angles()
-
-                self.output_angles()
