@@ -34,8 +34,13 @@ imu.setAccelEnable(True)
 imu.setCompassEnable(True)
 poll_interval = imu.IMUGetPollInterval()
 print("hold the imu still...")
-while not imu.IMUGyroBiasValid():
+while True:
     imu.IMURead()
+    if imu.IMUGyroBiasValid():
+        print("gyro bias calculated!")
+        break
+    else:
+        print("calculating bias...")
     time.sleep(0.1)
 print("gyro bias done")
 
