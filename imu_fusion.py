@@ -415,3 +415,5 @@ class imu_fusion():
             self.euler_angles()
 
             self.output_angles()
+
+            print("loop")
