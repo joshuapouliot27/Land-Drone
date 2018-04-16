@@ -68,6 +68,7 @@ while True:
         heading += 360
     if heading > 360:
         heading -= 360
+    print(time.strftime("%X") + ("Compass: X: {:.5} Y: {:.5} Z: {:.5}"))
     print(time.strftime("%X") + ("; Heading: {:.5}, Roll: {:.5}, Pitch: {:.5}, Yaw: {:.5}"
                                  .format(heading, math.degrees(roll_rad), math.degrees(pitch_rad),
                                          math.degrees(yaw_rad))))
