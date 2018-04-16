@@ -34,15 +34,15 @@ imu.setAccelEnable(True)
 imu.setCompassEnable(True)
 poll_interval = imu.IMUGetPollInterval()
 thread = Background_Thread(imu_loop)
-print("hold the imu still...")
-while True:
-    if imu.IMUGyroBiasValid():
-        print("gyro bias calculated!")
-        break
-    else:
-        print("calculating bias...")
-    time.sleep(2)
-print("gyro bias done")
+# print("hold the imu still...")
+# while True:
+#     if imu.IMUGyroBiasValid():
+#         print("gyro bias calculated!")
+#         break
+#     else:
+#         print("calculating bias...")
+#     time.sleep(2)
+# print("gyro bias done")
 while True:
     # if len(points) >= max_points:
     #     for point in points:
