@@ -21,7 +21,7 @@ if not imu.IMUInit():
 # fus = imu_fusion(acc_gyr, magn)
 # points = set()
 # max_points = 5
-def imu_loop()
+def imu_loop():
     while True:
         imu.IMURead()
 thread = Background_Thread(imu_loop)
