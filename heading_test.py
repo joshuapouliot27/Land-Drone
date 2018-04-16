@@ -49,6 +49,6 @@ while True:
         heading+=360
     if heading > 360:
         heading-=360
-    print(time.strftime("%X") + ("; Heading: {0:.3}, Roll: {:.2}, Pitch: {2:.2}, Yaw: {3:.2}".format(heading, math.degrees(roll_rad),
+    print(time.strftime("%X") + ("; Heading: {:.3}, Roll: {:.2}, Pitch: {:.2}, Yaw: {:.2}".format(heading, math.degrees(roll_rad),
                                                                                      math.degrees(pitch_rad), math.degrees(yaw_rad))))
     time.sleep(1 / 2)
