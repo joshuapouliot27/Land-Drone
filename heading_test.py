@@ -9,7 +9,7 @@ from LIS3MDL import LIS3MDL
 from LSM6DS33 import LSM6DS33
 import RTIMU
 
-setting_file = "./RTIMULib.ini"
+setting_file = "./RTIMULib"
 rtimu = RTIMU.Settings(setting_file)
 imu = RTIMU.RTIMU(rtimu)
 if not imu.IMUInit():
