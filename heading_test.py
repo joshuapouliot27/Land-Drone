@@ -44,5 +44,11 @@ while True:
     x = math.cos(yaw_rad) * math.cos(pitch_rad)
     y = math.sin(yaw_rad) * math.cos(pitch_rad)
     heading = math.degrees(math.atan2(y, x))
-    print(time.strftime("%X") + "; Heading: " + str(heading))
+    heading-=150.5
+    if heading < 0:
+        heading+=360
+    if heading > 360:
+        heading-=360
+    print(time.strftime("%X") + ("; Heading: {0:.3}, Roll: {:.2}, Pitch: {2:.2}, Yaw: {3:.2}".format(heading, math.degrees(roll_rad),
+                                                                                     math.degrees(pitch_rad), math.degrees(yaw_rad))))
     time.sleep(1 / 2)
