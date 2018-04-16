@@ -44,11 +44,12 @@ while True:
     # heading = math.fsum(points) / len(points)
     data = imu.getIMUData()
     fusionPose = data["fusionPose"]
+    compass = data["compass"]
     roll_rad = fusionPose[0]
     pitch_rad = fusionPose[1]
     yaw_rad = fusionPose[2]
-    x = math.cos(yaw_rad) * math.cos(pitch_rad)
-    y = math.sin(yaw_rad) * math.cos(pitch_rad)
+    x = compass[x]
+    y = compass[y]
     heading = math.degrees(math.atan2(y, x))
     if yaw_rad < 0:
         yaw_rad += 2*math.pi
