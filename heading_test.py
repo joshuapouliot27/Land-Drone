@@ -29,7 +29,7 @@ def imu_loop():
 
 
 thread = Background_Thread(imu_loop)
-imu.setSlerpPower(0.02)
+imu.setSlerpPower(0.2)
 imu.setGyroEnable(True)
 imu.setAccelEnable(True)
 imu.setCompassEnable(True)
