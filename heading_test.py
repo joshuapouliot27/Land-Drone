@@ -37,11 +37,12 @@ max_points = 5
 #thread = Background_Thread(imu_loop)
 
 while True:
-    if len(points) >= max_points:
-        for point in points:
-            points.remove(point)
-            break
-    points.add(calc.calculate_tilt_compensated_heading())
-    heading = math.fsum(points) / len(points)
+    # if len(points) >= max_points:
+    #     for point in points:
+    #         points.remove(point)
+    #         break
+    # points.add(calc.calculate_tilt_compensated_heading())
+    # heading = math.fsum(points) / len(points)
+    heading = calc.calculate_tilt_compensated_heading()
     print(time.strftime("%X") + ("; Heading: {:.5}".format(heading)))
     time.sleep(1 / 10)
