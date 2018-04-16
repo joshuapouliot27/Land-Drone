@@ -35,6 +35,7 @@ while True:
     # points.add(calc.calculate_tilt_compensated_heading())
     # points.add(fus.get_true_heading())
     # heading = math.fsum(points) / len(points)
+    imu.IMURead()
     data = imu.getIMUData()
     fusionPose = data["fusionPose"]
     roll_rad = fusionPose[0]
