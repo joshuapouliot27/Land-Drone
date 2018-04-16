@@ -20,7 +20,8 @@ while True:
        for point in points:
            points.remove(point)
            break
-    points.add(fus.get_true_heading())
+    points.add(calc.calculate_tilt_compensated_heading())
+    #points.add(fus.get_true_heading())
     heading = math.fsum(points) / len(points)
     print(time.strftime("%X") + "; Heading: " + str(heading))
     time.sleep(1 / 2)
