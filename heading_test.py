@@ -44,5 +44,10 @@ while True:
     # points.add(calc.calculate_tilt_compensated_heading())
     # heading = math.fsum(points) / len(points)
     heading = calc.calculate_tilt_compensated_heading()
+    heading+=11
+    if heading >= 360:
+        heading-=360
+    if heading < 0:
+        heading+=360
     print(time.strftime("%X") + ("; Heading: {:.5}".format(heading)))
     time.sleep(1 / 10)
