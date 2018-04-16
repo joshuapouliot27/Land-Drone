@@ -14,7 +14,7 @@ calc = HeadingCalculator(acc_gyr, magn)
 fus = imu_fusion(acc_gyr, magn)
 points = set()
 max_points = 5
-thread = Background_Thread(fus.loop())
+thread = Background_Thread(fus.loop)
 while True:
     # if len(points) >= max_points:
     #    for point in points:
