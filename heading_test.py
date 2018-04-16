@@ -27,7 +27,8 @@ def imu_loop():
     while True:
         imu.IMURead()
 
-imu.setSlerpPower(0.2)
+
+imu.setSlerpPower(0.02)
 imu.setGyroEnable(True)
 imu.setAccelEnable(True)
 imu.setCompassEnable(True)
