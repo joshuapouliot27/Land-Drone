@@ -9,7 +9,7 @@
 #   berryIMU.py or berryIMU-simple.py
 
 
-import sys, signal, os
+import sys, os
 import time
 
 from LSM6DS33 import LSM6DS33

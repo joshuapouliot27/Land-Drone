@@ -15,12 +15,12 @@ class imu_fusion():
         self.Ki_YAW = 0.00002
 
         # CALIBRATION VALUEs
-        self.ACCEL_X_MIN = -289
-        self.ACCEL_X_MAX = 294
-        self.ACCEL_Y_MIN = -268
-        self.ACCEL_Y_MAX = 288
-        self.ACCEL_Z_MIN = -294
-        self.ACCEL_Z_MAX = 269
+        self.ACCEL_X_MIN = -32764
+        self.ACCEL_X_MAX = 32749
+        self.ACCEL_Y_MIN = -32764
+        self.ACCEL_Y_MAX = 32748
+        self.ACCEL_Z_MIN = -32749
+        self.ACCEL_Z_MAX = 32764
 
         self.MAGN_X_MIN = -3091
         self.MAGN_X_MAX = 4233
