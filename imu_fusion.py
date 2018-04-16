@@ -393,27 +393,26 @@ class imu_fusion():
 
     # Main loop
     def loop(self):
+        while True:
         # Time to read the sensors again?
-        if (self.millis() - self.timestamp) >= 1000:
-            self.timestamp_old = self.timestamp
-            self.timestamp = self.millis()
-            if self.timestamp > self.timestamp_old:
-                self.G_Dt = (self.timestamp - self.timestamp_old) / 1000.0
-            else:
-                self.G_Dt = 0
+            if (self.millis() - self.timestamp) >= 1000:
+                self.timestamp_old = self.timestamp
+                self.timestamp = self.millis()
+                if self.timestamp > self.timestamp_old:
+                    self.G_Dt = (self.timestamp - self.timestamp_old) / 1000.0
+                else:
+                    self.G_Dt = 0
 
-            # Update sensor readings
-            self.read_sensors()
-            # Apply sensor calibration
-            self.compensate_sensor_errors()
+                # Update sensor readings
+                self.read_sensors()
+                # Apply sensor calibration
+                self.compensate_sensor_errors()
 
-            # Run DCM algorithm
-            self.compass_heading()  # Calculate magnetic heading
-            self.matrix_update()
-            self.normalize()
-            self.drift_correction()
-            self.euler_angles()
+                # Run DCM algorithm
+                self.compass_heading()  # Calculate magnetic heading
+                self.matrix_update()
+                self.normalize()
+                self.drift_correction()
+                self.euler_angles()
 
-            self.output_angles()
-
-            print("loop")
+                self.output_angles()
