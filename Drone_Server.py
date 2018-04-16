@@ -76,10 +76,10 @@ accelerometer_offset_y = -0.9543302538970905
 
 
 class Websocket_Server(WebSocket):
-    def handleMessage(self):
-        json = web_socket_handler(self.data)
-        if json is not None:
-            self.sendMessage(json)
+    def handle_message(self):
+        json_input = web_socket_handler(self.data)
+        if json_input is not None:
+            self.sendMessage(json_input)
 
 
 def web_socket_handler(message):
