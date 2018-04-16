@@ -44,7 +44,6 @@ while True:
     x = math.cos(yaw_rad) * math.cos(pitch_rad)
     y = math.sin(yaw_rad) * math.cos(pitch_rad)
     heading = math.degrees(math.atan2(y, x))
-    heading -= 150.5
     if heading < 0:
         heading += 360
     if heading > 360:
