@@ -27,8 +27,6 @@ def imu_loop():
     while True:
         imu.IMURead()
 
-
-thread = Background_Thread(imu_loop)
 imu.setSlerpPower(0.2)
 imu.setGyroEnable(True)
 imu.setAccelEnable(True)
@@ -36,8 +34,11 @@ imu.setCompassEnable(True)
 poll_interval = imu.IMUGetPollInterval()
 print("hold the imu still...")
 while not imu.IMUGyroBiasValid():
+    imu.IMURead()
     time.sleep(0.1)
 print("gyro bias done")
+
+thread = Background_Thread(imu_loop)
 while True:
     # if len(points) >= max_points:
     #     for point in points:
