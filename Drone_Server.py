@@ -113,7 +113,7 @@ gps_points = [
 finished = False
 
 
-class web_socket_Server(WebSocket):
+class web_socket_server(WebSocket):
     def handle_message(self):
         json_input = web_socket_handler(self.data)
         if json_input is not None:
@@ -508,7 +508,7 @@ def gps_loop():
 
 
 def web_socket_loop():
-    server = SimpleWebSocketServer('', 8081, web_socket_Server)
+    server = SimpleWebSocketServer('', 8081, web_socket_server)
     print("websocket started!")
     server.serveforever()
     print("websocket ended")
