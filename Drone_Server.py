@@ -179,14 +179,6 @@ def get_sonar_distance():
     return distance
 
 
-# def setup_imu():
-#     global magnetometer, accelerometer_gyroscope, heading_calculator
-#     magnetometer = LIS3MDL()
-#     accelerometer_gyroscope = LSM6DS33()
-#     heading_calculator = HeadingCalculator(accelerometer_gyroscope, magnetometer)
-#     logging.info("IMU setup!")
-
-
 def setup_sonar():
     GPIO.setup(sonar_echo_pin, GPIO.IN)
     GPIO.setup(sonar_trig_pin, GPIO.OUT)
@@ -224,9 +216,6 @@ def setup():
 
     # GPS
     setup_gps()
-
-    # # IMU
-    # setup_imu()
 
     # Sonar
     setup_sonar()
@@ -426,16 +415,6 @@ def only_positive_numbers(number: float):
         return 0
 
 
-# def get_true_heading():
-#     global current_direction_degrees
-#     if len(imu_points) >= imu_points_num_averaging:
-#         for point in imu_points:
-#             imu_points.remove(point)
-#             break
-#     imu_points.add(HeadingCalculator.calculate_tilt_compensated_heading())
-#     current_direction_degrees = math.fsum(imu_points) / len(imu_points)
-
-
 def sonar_loop():
     while True:
         if all_stop:
@@ -460,16 +439,6 @@ def gps_loop():
             print("gps loop")
         get_position()
         time.sleep(1 / gps_frequency)
-
-
-# def imu_loop():
-#     while True:
-#         if all_stop:
-#             break
-#         if trace_loop:
-#             print("imu loop")
-#         get_true_heading()
-#         time.sleep(1 / imu_frequency)
 
 
 def web_socket_loop():
@@ -533,10 +502,6 @@ def main_loop():
             print("Main loop")
         if all_stop:
             break
-
-        #       imu_loop()
-        #       gps_loop()
-        #       sonar_loop()
 
         # Distance Sensor
         if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
