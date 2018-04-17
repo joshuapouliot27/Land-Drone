@@ -572,7 +572,7 @@ def main_loop():
         #       sonar_loop()
 
         # Distance Sensor
-        if (stop_everything or current_distance_ahead <= sonar_min_distance) and current_pwm > 0:
+        if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
             print("obstacle in the way or stop pressed, emergency stopping")
             set_motor_speed(0, True)
         if not automated_mode:
