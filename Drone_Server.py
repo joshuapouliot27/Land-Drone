@@ -114,6 +114,9 @@ finished = False
 
 
 class web_socket_server(WebSocket):
+    def __init__(self, server, sock, address):
+        print("web socket handler made")
+        super().__init__(server, sock, address)
     def handle_message(self):
         print("message recieved: " + str(self.data))
         json_input = web_socket_handler(self.data)
@@ -649,7 +652,6 @@ try:
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
     #thread3 = Background_Thread(sonar_loop)
-    # thread4 = Background_Thread(imu_loop)
     #thread2 = Background_Thread(gps_loop)
     #main_loop()
     while True:
