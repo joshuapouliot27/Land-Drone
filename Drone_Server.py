@@ -96,7 +96,6 @@ finished = False
 
 
 def web_socket_handler(client, server, message):
-    print("message: "+str(message))
     if "return" in message:
         json_data = get_json_string()
         server.send_message(client, json_data)
