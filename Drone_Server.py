@@ -64,6 +64,8 @@ max_right_turn_pwm = 8000
 less_turn_percent = 0.2
 
 # Automated Variables
+time_last_turn_start = 0
+turn_min_time = 3.5  # minimum time before changing turning
 automated_mode = False
 was_automated = False
 sonar_min_distance = 1
@@ -496,7 +498,7 @@ def get_next_gps_target():
 
 
 def main_loop():
-    global was_automated, automated_mode, gps_target, direction_target, finished
+    global was_automated, automated_mode, gps_target, direction_target, finished, time_last_turn_start
     while True:
 
         if trace_loop:
@@ -515,6 +517,7 @@ def main_loop():
                 set_motor_speed(0)
                 set_motor_direction(True, True)
                 set_motor_direction(False, True)
+                time_last_turn_start = 0
                 finished = False
             # if direction isn't proper, then stop moving change direction and start moving
             if not is_proper_direction():
@@ -553,6 +556,7 @@ def main_loop():
                 set_motor_direction(False, True)
                 was_automated = True
                 gps_target = get_next_gps_target()
+                time_last_turn_start = 0
                 finished = False
 
             current_distance_away = Math.distance_between_points(current_latitude, gps_target[0],
@@ -563,7 +567,9 @@ def main_loop():
                 print("obstacle in the way or stop pressed, emergency stopping")
                 set_motor_speed(0, True)
 
-            if not correct_automated_direction() and not stop_everything and not finished:
+            time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
+            if not correct_automated_direction() and not stop_everything and not finished \
+                    and time_since_last_turn >= turn_min_time:
                 if should_turn_left():
                     set_motor_speed(1 - less_turn_percent, False, True)
                     set_motor_speed(1, False, True)
@@ -574,7 +580,8 @@ def main_loop():
                     time.sleep(2.5)
             elif current_distance_ahead >= sonar_min_distance and not stop_everything \
                     and (current_pwm[0] < max_left_pwm or current_pwm[1] < max_right_pwm) \
-                    and current_distance_away >= gps_tolerance and not finished:
+                    and current_distance_away >= gps_tolerance and not finished \
+                    and time_since_last_turn < turn_min_time :
                 set_motor_speed(1)
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
