@@ -317,6 +317,7 @@ def set_pwm_freq(is_left, freq):
             left_motor_pwm.ChangeFrequency(freq)
             current_pwm[0] = freq
     else:
+        print("right motor: "+str(freq))
         if (freq <= 0) and (is_moving()):
             right_motor_pwm.stop()
             current_pwm[1] = 0
@@ -582,7 +583,7 @@ def main_loop():
             elif current_distance_ahead >= sonar_min_distance and not stop_everything \
                     and (current_pwm[0] < max_left_pwm or current_pwm[1] < max_right_pwm) \
                     and current_distance_away >= gps_tolerance and not finished \
-                    and time_since_last_turn < turn_min_time :
+                    and time_since_last_turn < turn_min_time:
                 set_motor_speed(1)
                 time.sleep(2.5)
                 time_last_turn_start = time.time()
