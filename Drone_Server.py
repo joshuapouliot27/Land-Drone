@@ -508,6 +508,7 @@ def gps_loop():
 
 def web_socket_loop():
     server = SimpleWebSocketServer('', 8081, web_socket_Server)
+    print("websocket started!")
     server.serveforever()
 
 
