@@ -261,7 +261,6 @@ def ramp_pwm(end, isLeft):
     if beginning > end:
         steps = math.fabs((beginning - end) // step_max)
         left_over = math.fabs((beginning - end)) - steps * step_max
-        print("left?: " + str(isLeft) + ", begin: " + str(beginning) + ", ending: " + str(end) + ", steps: " + str(steps) + ", left_over: " + str(left_over))
         for x in range(0, int(steps)):
             if isLeft:
                 new_pwm = current_pwm[0] - step_max
