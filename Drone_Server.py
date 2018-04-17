@@ -74,7 +74,7 @@ direction_target = 0
 gps_tolerance = 4  # in meters
 direction_tolerance = 5  # in degrees
 current_gps_index = -1
-gps_points = [
+field_gps_points = [
     [44.9063300, -68.6683193],
     [44.9063243, -68.6682348],
     [44.9062683, -68.6681932],
@@ -94,6 +94,11 @@ gps_points = [
     [44.9062977, -68.6684856],
     [44.9063224, -68.6683971]
 ]  # [[lat, lon], [lat, lon]...]
+house_gps_points = [
+    [0, 0]
+]
+gps_points = field_gps_points
+# gps_points = house_gps_points
 finished = False
 
 
