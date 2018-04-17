@@ -48,25 +48,12 @@ class HeadingCalculator:
 
         self.magn = magnetometer
         self.gyro_accel = gyroscope_accelerometer
-        self.old_mag_value = Vector(0, 0, 0)
-        self.old_acc_value = Vector(0, 0, 0)
-
-        self.mag_lpf_factor = 0.4
-        self.acc_lpf_factor = 0.1
 
 
     def calculate_tilt_compensated_heading(self):
         # Read the accelerometer,gyroscope and magnetometer values
         acc_data = self.gyro_accel.get_accelerometer_data()
-        #acc_data.x = acc_data.x * self.acc_lpf_factor + self.old_acc_value.x * (1 - self.acc_lpf_factor)
-        #acc_data.y = acc_data.y * self.acc_lpf_factor + self.old_acc_value.y * (1 - self.acc_lpf_factor)
-        #acc_data.z = acc_data.z * self.acc_lpf_factor + self.old_acc_value.z * (1 - self.acc_lpf_factor)
         magn_data = self.magn.get_magnetometer_data()
-        #magn_data.x = magn_data.x * self.mag_lpf_factor + self.olx_mag_value.x * (1 - self.mag_lpf_factor)
-        #magn_data.y = magn_data.y * self.mag_lpf_factor + self.olx_mag_value.y * (1 - self.mag_lpf_factor)
-        #magn_data.z = magn_data.z * self.mag_lpf_factor + self.olx_mag_value.z * (1 - self.mag_lpf_factor)
-        self.old_acc_value = acc_data
-        self.old_mag_value = magn_data
 
         magn_x_offset = (self.magXmin + self.magXmax) / 2
         magn_y_offset = (self.magYmin + self.magYmax) / 2
@@ -82,8 +69,8 @@ class HeadingCalculator:
         magn_data.z = (magn_data.z - magn_z_offset) * magn_scale_z
 
         # Convert Accelerometer values to degrees
-        AccXangle = math.degrees(math.atan2(acc_data.y, acc_data.z) + math.pi)
-        AccYangle = math.degrees(math.atan2(acc_data.z, acc_data.x) + math.pi)
+        AccXangle = math.degrees(math.atan2(acc_data.y, acc_data.z))
+        AccYangle = math.degrees(math.atan2(acc_data.z, acc_data.x))
 
         if AccXangle >180:
             AccXangle -= 360.0
