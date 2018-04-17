@@ -10,7 +10,6 @@ import Math
 
 import RPi.GPIO as GPIO
 from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
-from websocket_server import WebsocketServer
 
 from Background_Thread import Background_Thread
 
@@ -124,6 +123,12 @@ class web_socket_server(WebSocket):
         json_input = web_socket_handler(self.data)
         if json_input is not None:
             self.sendMessage(json_input)
+
+    def handleConnected(self):
+        print("client connected")
+
+    def handleClose(self):
+        print("client disconnected")
 
 
 def web_socket_handler(message):
