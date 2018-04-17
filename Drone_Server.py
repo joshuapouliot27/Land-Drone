@@ -19,8 +19,8 @@ moving_backward = False
 current_latitude: float = None
 current_longitude: float = None
 current_direction_degrees: float = None
-# current_distance_ahead: float = 25
-current_distance_ahead: float = 0
+current_distance_ahead: float = 25
+# current_distance_ahead: float = 0
 dir_left = False
 dir_right = False
 dir_forward = False
@@ -623,7 +623,7 @@ try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
-    thread3 = Background_Thread(sonar_loop)
+    # thread3 = Background_Thread(sonar_loop)
     thread2 = Background_Thread(gps_loop)
     main_loop()
 except Exception as error:
