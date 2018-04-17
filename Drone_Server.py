@@ -99,7 +99,7 @@ house_gps_points = [
     [44.925618, -68.645625],
     [44.924985, -68.645432],
     [44.924684, -68.647174]
-]  # 4 pointsalong streets near house
+]  # 4 points along streets near house
 gps_points = field_gps_points
 # gps_points = house_gps_points
 finished = False
