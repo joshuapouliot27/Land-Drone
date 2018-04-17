@@ -115,13 +115,13 @@ finished = False
 
 class web_socket_server(WebSocket):
     def handle_message(self):
+        print("message recieved: " + str(self.data))
         json_input = web_socket_handler(self.data)
         if json_input is not None:
             self.sendMessage(json_input)
 
 
 def web_socket_handler(message):
-    print("message recieved: "+str(message))
     if "return" in message:
         json_data = get_json_string()
         return json_data
