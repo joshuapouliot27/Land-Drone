@@ -21,6 +21,7 @@ GPIO.output(sonar_trig_pin, False)
 
 while GPIO.input(sonar_echo_pin) == 0:
     time_start = time.time()
+print("waiting for echo")
 while GPIO.input(sonar_echo_pin) == 1:
     time_end = time.time()
 
