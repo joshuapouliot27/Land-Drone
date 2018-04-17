@@ -25,5 +25,6 @@ while GPIO.input(sonar_echo_pin) == 1:
     time_end = time.time()
 
 total_time = time_end - time_start
+print("time took: "+str(total_time))
 distance = (total_time / 2) * 1125.33  # Calculated in ft/s
 print("Sonar distance: {0:.2} ft".format(distance))
