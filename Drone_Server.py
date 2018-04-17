@@ -281,6 +281,10 @@ def ramp_pwm(end, isLeft):
                 new_pwm = current_pwm[1] - step_max
                 print("STEP " + str(x) + ", curr_pwm bef:" + str(current_pwm[1]))
             set_pwm_freq(isLeft, new_pwm)
+            if isLeft:
+                print("STEP " + str(x) + ", curr_pwm bef:" + str(current_pwm[0]))
+            else:
+                print("STEP " + str(x) + ", curr_pwm bef:" + str(current_pwm[1]))
             time.sleep(step_freq)
         if isLeft:
             new_pwm = current_pwm[0] - left_over
