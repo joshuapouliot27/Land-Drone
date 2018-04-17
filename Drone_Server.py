@@ -565,21 +565,21 @@ def main_loop():
                 if should_turn_left():
                     set_motor_speed(1 - less_turn_percent, False, True)
                     set_motor_speed(1, False, True)
-                    time.sleep(2)
+                    time.sleep(2.5)
                 else:
                     set_motor_speed(1, False, True)
                     set_motor_speed(1 - less_turn_percent, False, True)
-                    time.sleep(2)
+                    time.sleep(2.5)
             elif current_distance_ahead >= sonar_min_distance and not stop_everything \
                     and (current_pwm[0] < max_left_pwm or current_pwm[1] < max_right_pwm) \
-                    and current_distance_away <= gps_tolerance and not finished:
+                    and current_distance_away >= gps_tolerance and not finished:
                 set_motor_speed(1)
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
                 print("obstacle in the way or stop pressed, emergency stopping")
                 set_motor_speed(0, True)
 
-            if current_distance_away < gps_tolerance and not finished:
+            if current_distance_away <= gps_tolerance and not finished:
                 gps_target = get_next_gps_target()
                 if gps_target is None:
                     finished = True
