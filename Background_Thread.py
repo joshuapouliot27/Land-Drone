@@ -3,7 +3,7 @@ import threading
 
 class Background_Thread(object):
 
-    def __init__(self, , arguments=None):
+    def __init__(self, function, arguments=()):
         self.function = function
         self.arguments = arguments
 
@@ -12,7 +12,7 @@ class Background_Thread(object):
         thread.start()                                  # Start the execution
 
     def run(self):
-        if self.arguments is not None:
+        if self.arguments is not ():
             self.function(*self.arguments)
         else:
             self.function()
