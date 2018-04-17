@@ -12,8 +12,8 @@ from websocket_server import WebsocketServer
 
 from Background_Thread import Background_Thread
 from headingcalculator import HeadingCalculator
-from LIS3MDL import LIS3MDL
-from LSM6DS33 import LSM6DS33
+# from LIS3MDL import LIS3MDL
+# from LSM6DS33 import LSM6DS33
 
 moving_left = False
 moving_right = False
@@ -32,9 +32,10 @@ dir_backward = False
 stop_everything = False
 gps_lat_points = set()
 gps_lon_points = set()
+direction_points = set()
 imu_points = set()
 sonar_points = set()
-current_pwm = 0
+current_pwm = [0,0]
 
 # Pin Number Variables
 left_motor_direction_pin = 15
@@ -48,21 +49,21 @@ sonar_echo_pin = 22
 left_motor_pwm: GPIO.PWM = None
 right_motor_pwm: GPIO.PWM = None
 
-# IMU Variables
-magnetometer: LIS3MDL = None
-accelerometer_gyroscope: LSM6DS33 = None
-heading_calculator: HeadingCalculator = None
+# # IMU Variables
+# magnetometer: LIS3MDL = None
+# accelerometer_gyroscope: LSM6DS33 = None
+# heading_calculator: HeadingCalculator = None
 
 # Frequency variables
 main_loop_frequency = 5000
-imu_frequency = 5000
+# imu_frequency = 5000
 gps_frequency = 5000
 sonar_frequency = 5000
 
 # Averaging variables
 sonar_points_num_averaging = 5
 gps_points_num_averaging = 5
-imu_points_num_averaging = 5
+# imu_points_num_averaging = 5
 
 # Misc Variables
 trace = True
@@ -70,9 +71,17 @@ trace_loop = False
 all_stop = False
 max_pwm = 20000
 max_turn_pwm = 8000
+less_turn_percent = 0.2
 accelerometer_threshold = 0.05
 accelerometer_offset_x = -0.007706830092610056
 accelerometer_offset_y = -0.9543302538970905
+
+# Automated Variables
+automated_mode = False
+gps_target = [0,0]
+direction_target = 0
+gps_tolerance = 0
+direction_tolerance = 5
 
 
 class Websocket_Server(WebSocket):
@@ -128,11 +137,18 @@ def get_position():
             for point in gps_lon_points:
                 gps_lon_points.remove(point)
                 break
+        if len(direction_points) >= gps_points_num_averaging:
+            for point in direction_points:
+                direction_points.remove(point)
+                break
         gps_lat_points.add(gps_packet.lat)
         gps_lon_points.add(gps_packet.lon)
+        direction_points.add(gps_packet.track)
+        current_direction_degrees = math.fsum(direction_points) / len(direction_points)
         current_longitude = math.fsum(gps_lon_points) / len(gps_lon_points)
         current_latitude = math.fsum(gps_lat_points) / len(gps_lat_points)
-    logging.debug("Current Position: Latitude: {0:.2}; Longitude: {1:.2}".format(current_latitude, current_longitude))
+    logging.debug("Current Position: Latitude: {0:.2}; Longitude: {1:.2}; direction: {2:.2}"
+                  .format(current_latitude, current_longitude, current_direction_degrees))
 
 
 def get_sonar_distance():
@@ -157,12 +173,12 @@ def get_sonar_distance():
     return distance
 
 
-def setup_imu():
-    global magnetometer, accelerometer_gyroscope, heading_calculator
-    magnetometer = LIS3MDL()
-    accelerometer_gyroscope = LSM6DS33()
-    heading_calculator = HeadingCalculator(accelerometer_gyroscope, magnetometer)
-    logging.info("IMU setup!")
+# def setup_imu():
+#     global magnetometer, accelerometer_gyroscope, heading_calculator
+#     magnetometer = LIS3MDL()
+#     accelerometer_gyroscope = LSM6DS33()
+#     heading_calculator = HeadingCalculator(accelerometer_gyroscope, magnetometer)
+#     logging.info("IMU setup!")
 
 
 def setup_sonar():
@@ -203,8 +219,8 @@ def setup():
     # GPS
     setup_gps()
 
-    # IMU
-    setup_imu()
+    # # IMU
+    # setup_imu()
 
     # Sonar
     setup_sonar()
@@ -237,25 +253,37 @@ def setup_logging():
                         filename="drone.log", level=logging.DEBUG)
 
 
-def ramp_pwm(end):
+
+
+def ramp_pwm(end, isLeft):
     global current_pwm
-    beginning = current_pwm
+    if isLeft:
+        beginning = current_pwm[0]
+    else:
+        beginning = current_pwm[1]
     if beginning is end:
         return
-    step_max = 500
+    step_max = 1000
     step_freq = 1 / (step_max / 10000)
     if beginning > end:
         steps = math.fabs((beginning - end) // step_max)
         left_over = math.fabs((beginning - end)) - steps * step_max
         for x in range(0, int(steps)):
-            new_pwm = current_pwm - step_max
-            set_pwm_freq(False, new_pwm)
-            set_pwm_freq(True, new_pwm)
-            current_pwm = new_pwm
+            if isLeft:
+                new_pwm = current_pwm[0] - step_max
+            else:
+                new_pwm = current_pwm[1] - step_max
+            set_pwm_freq(isLeft, new_pwm)
+            if isLeft:
+                current_pwm[0] = [new_pwm, new_pwm]
+            else:
+                current_pwm[1] = [new_pwm, new_pwm]
             time.sleep(1 / step_freq)
-        new_pwm = current_pwm - left_over
-        set_pwm_freq(False, new_pwm)
-        set_pwm_freq(True, new_pwm)
+        if isLeft:
+            new_pwm = current_pwm[0] - left_over
+        else:
+            new_pwm = current_pwm[1] - left_over
+        set_pwm_freq(isLeft, new_pwm)
         current_pwm = new_pwm
         time.sleep(1 / step_freq)
         print("final pwm: " + str(new_pwm))
@@ -263,13 +291,17 @@ def ramp_pwm(end):
         steps = math.fabs((beginning - end) // step_max)
         left_over = math.fabs((beginning - end)) - steps * step_max
         for x in range(0, int(steps)):
-            new_pwm = current_pwm + step_max
-            set_pwm_freq(False, new_pwm)
-            set_pwm_freq(True, new_pwm)
+            if isLeft:
+                new_pwm = current_pwm[0] + step_max
+            else:
+                new_pwm = current_pwm[1] + step_max
+            set_pwm_freq(isLeft, new_pwm)
             current_pwm = new_pwm
             time.sleep(1 / step_freq)
-        new_pwm = current_pwm + left_over
-        set_pwm_freq(False, new_pwm)
+        if isLeft:
+            new_pwm = current_pwm[0] + left_over
+        else:
+            new_pwm = current_pwm[1] + left_over
         set_pwm_freq(True, new_pwm)
         current_pwm = new_pwm
         time.sleep(1 / step_freq)
@@ -315,10 +347,12 @@ def set_motor_speed(percent, emergency=False):
     else:
         if not dir_left and not dir_right:
             end_freq = percent * max_pwm
-            ramp_pwm(end_freq)
+            thread = Background_Thread(ramp_pwm, (end_freq, True))
+            thread = Background_Thread(ramp_pwm, (end_freq, False))
         else:
             end_freq = percent * max_turn_pwm
-            ramp_pwm(end_freq)
+            thread = Background_Thread(ramp_pwm, (end_freq, True))
+            thread = Background_Thread(ramp_pwm, (end_freq, False))
 
 
 def set_motor_direction(is_left, forward):
@@ -376,24 +410,6 @@ def is_proper_direction():
     return True
 
 
-def check_constant_speed():
-    accelerometer_data = accelerometer_gyroscope.get_accelerometer_data()
-    accelerometer_x = accelerometer_data.x
-    accelerometer_y = accelerometer_data.y
-    accelerometer_z = accelerometer_data.z
-    accelerometer_x_norm = (accelerometer_x / math.sqrt(accelerometer_x * accelerometer_x
-                                                        + accelerometer_y * accelerometer_y
-                                                        + accelerometer_z * accelerometer_z)) + accelerometer_offset_x
-    accelerometer_y_norm = (accelerometer_y / math.sqrt(accelerometer_x * accelerometer_x
-                                                        + accelerometer_y * accelerometer_y
-                                                        + accelerometer_z * accelerometer_z)) + accelerometer_offset_y
-    if math.fabs(accelerometer_x_norm) < accelerometer_threshold \
-            and math.fabs(accelerometer_y_norm) < accelerometer_threshold:
-        return True
-    else:
-        return False
-
-
 def only_positive_numbers(number: float):
     if number > 0:
         return number
@@ -401,14 +417,14 @@ def only_positive_numbers(number: float):
         return 0
 
 
-def get_true_heading():
-    global current_direction_degrees
-    if len(imu_points) >= imu_points_num_averaging:
-        for point in imu_points:
-            imu_points.remove(point)
-            break
-    imu_points.add(HeadingCalculator.calculate_tilt_compensated_heading())
-    current_direction_degrees = math.fsum(imu_points) / len(imu_points)
+# def get_true_heading():
+#     global current_direction_degrees
+#     if len(imu_points) >= imu_points_num_averaging:
+#         for point in imu_points:
+#             imu_points.remove(point)
+#             break
+#     imu_points.add(HeadingCalculator.calculate_tilt_compensated_heading())
+#     current_direction_degrees = math.fsum(imu_points) / len(imu_points)
 
 
 def sonar_loop():
@@ -437,19 +453,50 @@ def gps_loop():
         time.sleep(1 / gps_frequency)
 
 
-def imu_loop():
-    while True:
-        if all_stop:
-            break
-        if trace_loop:
-            print("imu loop")
-        get_true_heading()
-        time.sleep(1 / imu_frequency)
+# def imu_loop():
+#     while True:
+#         if all_stop:
+#             break
+#         if trace_loop:
+#             print("imu loop")
+#         get_true_heading()
+#         time.sleep(1 / imu_frequency)
 
 
 def web_socket_loop():
     server = SimpleWebSocketServer('', 8081, Websocket_Server)
     server.serveforever()
+
+def correct_automated_direction():
+    if math.fabs(current_direction_degrees - direction_target) < direction_tolerance:
+        return True
+    else:
+        return False
+
+
+def pos_degree(number):
+    if number >= 360:
+        new_num = number - 360
+    elif number < 0:
+        new_num = number + 360
+    else:
+        new_num = number
+    return new_num
+
+
+def should_turn_left():
+    right_turn_degrees = pos_degree(direction_target - current_direction_degrees)
+    left_turn_degrees = pos_degree(360 - right_turn_degrees)
+    if left_turn_degrees <= right_turn_degrees:
+        return True
+    else:
+        return False
+
+def is_moving():
+    if current_pwm[0] > 0 or current_pwm[1] > 0:
+        return True
+    else:
+        return False
 
 
 def main_loop():
@@ -468,28 +515,32 @@ def main_loop():
         if (stop_everything or current_distance_ahead <= 1) and current_pwm > 0:
             print("obstacle in the way or stop pressed, emergency stopping")
             set_motor_speed(0, True)
+        if not automated_mode:
+            # if direction isn't proper, then stop moving change direction and start moving
+            if not is_proper_direction():
+                print("changing proper direction")
+                if is_moving():
+                    set_motor_speed(0)
+                set_proper_direction()
+                # while not await check_constant_speed():
+                # time.sleep(loop_Delay / 1000)
+                set_motor_speed(1)
 
-        # if direction isn't proper, then stop moving change direction and start moving
-        if not is_proper_direction():
-            print("changing proper direction")
-            if current_pwm > 0:
+            # If distance is fine and remote button isn't pressed and not moving, then start moving
+            if current_distance_ahead > 1 and not is_moving() \
+                    and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
+                print("started moving")
+                set_motor_speed(1)
+
+            # if not supposed to be moving, but is moving then stop moving
+            if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
+                    and is_moving():
+                print("stopping motion")
                 set_motor_speed(0)
-            set_proper_direction()
-            # while not await check_constant_speed():
-            # time.sleep(loop_Delay / 1000)
-            set_motor_speed(1)
+        else:
+            if not correct_automated_direction():
 
-        # If distance is fine and remote button isn't pressed and not moving, then start moving
-        if current_distance_ahead > 1 and current_pwm <= 0 \
-                and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
-            print("started moving")
-            set_motor_speed(1)
 
-        # if not supposed to be moving, but is moving then stop moving
-        if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
-                and current_pwm > 0:
-            print("stopping motion")
-            set_motor_speed(0)
         time.sleep(1 / main_loop_frequency)
 
 
@@ -498,7 +549,7 @@ try:
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
     thread3 = Background_Thread(sonar_loop)
-    thread4 = Background_Thread(imu_loop)
+    # thread4 = Background_Thread(imu_loop)
     thread2 = Background_Thread(gps_loop)
     main_loop()
 except Exception as error:
