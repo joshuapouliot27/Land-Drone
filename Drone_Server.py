@@ -265,10 +265,13 @@ def ramp_pwm(end, isLeft):
         beginning = current_pwm[0]
     else:
         beginning = current_pwm[1]
+    stepss = math.fabs((beginning - end) // 1000)
+    left_overs = math.fabs((beginning - end)) - stepss * 1000
+    print("left?: "+str(isLeft)+", begin: "+str(beginning)+", ending: "+str(end)+", steps: "+str(stepss)+", left_over: "+str(left_overs))
     if beginning is end:
         return
     step_max = 1000
-    step_freq = 1 / (step_max / 10000)
+    step_freq = (step_max / 10000)
     if beginning > end:
         steps = math.fabs((beginning - end) // step_max)
         left_over = math.fabs((beginning - end)) - steps * step_max
@@ -278,13 +281,13 @@ def ramp_pwm(end, isLeft):
             else:
                 new_pwm = current_pwm[1] - step_max
             set_pwm_freq(isLeft, new_pwm)
-            time.sleep(1 / step_freq)
+            time.sleep(step_freq)
         if isLeft:
             new_pwm = current_pwm[0] - left_over
         else:
             new_pwm = current_pwm[1] - left_over
         set_pwm_freq(isLeft, new_pwm)
-        time.sleep(1 / step_freq)
+        time.sleep(step_freq)
         print("final pwm: " + str(new_pwm))
     else:
         steps = math.fabs((beginning - end) // step_max)
@@ -295,13 +298,13 @@ def ramp_pwm(end, isLeft):
             else:
                 new_pwm = current_pwm[1] + step_max
             set_pwm_freq(isLeft, new_pwm)
-            time.sleep(1 / step_freq)
+            time.sleep(step_freq)
         if isLeft:
             new_pwm = current_pwm[0] + left_over
         else:
             new_pwm = current_pwm[1] + left_over
         set_pwm_freq(isLeft, new_pwm)
-        time.sleep(1 / step_freq)
+        time.sleep(step_freq)
         print("final pwm: " + str(new_pwm))
 
 
@@ -309,7 +312,6 @@ def set_pwm_freq(is_left, freq):
     global current_pwm
     if freq is current_pwm:
         return
-    print("isleft: "+str(is_left)+", set pwm: "+str(freq))
     if is_left:
         if (freq <= 0) and (is_moving()):
             left_motor_pwm.stop()
