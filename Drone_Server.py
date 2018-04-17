@@ -653,11 +653,8 @@ try:
     thread = Background_Thread(web_socket_loop)
     trace_loop = True
     thread3 = Background_Thread(sonar_loop)
-    #thread2 = Background_Thread(gps_loop)
-    #main_loop()
-    while True:
-        a = 0
-        time.sleep(1)
+    thread2 = Background_Thread(gps_loop)
+    main_loop()
 except Exception as error:
     set_pwm_freq(False, 0)
     set_pwm_freq(True, 0)
