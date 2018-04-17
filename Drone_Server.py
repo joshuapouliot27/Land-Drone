@@ -524,15 +524,22 @@ def main_loop():
                 # time.sleep(loop_Delay / 1000)
                 set_motor_speed(1)
 
+            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
+                print("obstacle in the way or stop pressed, emergency stopping")
+                set_motor_speed(0, True)
+
             # If distance is fine and remote button isn't pressed and not moving, then start moving
             if current_distance_ahead > sonar_min_distance and not is_moving() \
                     and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
                 print("started moving")
                 set_motor_speed(1)
 
+            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
+                print("obstacle in the way or stop pressed, emergency stopping")
+                set_motor_speed(0, True)
+
             # if not supposed to be moving, but is moving then stop moving
-            if ((
-                        not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
+            if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
                     and is_moving():
                 print("stopping motion")
                 set_motor_speed(0)
@@ -550,6 +557,9 @@ def main_loop():
                                                                  current_longitude, gps_target[1])
             direction_target = Math.heading_between_points(current_latitude, gps_target[0],
                                                            current_longitude, gps_target[1])
+            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
+                print("obstacle in the way or stop pressed, emergency stopping")
+                set_motor_speed(0, True)
 
             if not correct_automated_direction() and not stop_everything and not finished:
                 if should_turn_left():
@@ -565,11 +575,19 @@ def main_loop():
                     and current_distance_away <= gps_tolerance and not finished:
                 set_motor_speed(1)
 
+            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
+                print("obstacle in the way or stop pressed, emergency stopping")
+                set_motor_speed(0, True)
+
             if current_distance_away < gps_tolerance and not finished:
                 gps_target = get_next_gps_target()
                 if gps_target is None:
                     finished = True
                     set_motor_speed(0)
+
+            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
+                print("obstacle in the way or stop pressed, emergency stopping")
+                set_motor_speed(0, True)
 
         time.sleep(1 / main_loop_frequency)
 
