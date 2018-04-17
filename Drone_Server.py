@@ -95,8 +95,11 @@ field_gps_points = [
     [44.9063224, -68.6683971]
 ]  # [[lat, lon], [lat, lon]...]
 house_gps_points = [
-    [0, 0]
-]
+    [44.925298, -68.647336],
+    [44.925618, -68.645625],
+    [44.924985, -68.645432],
+    [44.924684, -68.647174]
+]  # 4 pointsalong streets near house
 gps_points = field_gps_points
 # gps_points = house_gps_points
 finished = False
@@ -534,8 +537,6 @@ def main_loop():
                 if is_moving():
                     set_motor_speed(0)
                 set_proper_direction()
-                # while not await check_constant_speed():
-                # time.sleep(loop_Delay / 1000)
                 set_motor_speed(1)
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
