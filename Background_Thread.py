@@ -13,4 +13,4 @@ class Background_Thread(object):
         thread.start()                                  # Start the execution
 
     def run(self):
-        self.function(self.arguments)
+        self.function(*self.arguments)
