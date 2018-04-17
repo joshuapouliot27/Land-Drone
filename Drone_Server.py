@@ -497,7 +497,8 @@ def get_next_gps_target():
 
 
 def main_loop():
-    global was_automated, automated_mode, gps_target, direction_target, finished, time_last_turn_start
+    global was_automated, automated_mode, gps_target, direction_target, finished, time_last_turn_start, \
+        dir_right, dir_left, dir_backward, dir_forward
     while True:
 
         if trace_loop:
@@ -516,6 +517,10 @@ def main_loop():
                 set_motor_speed(0)
                 set_motor_direction(True, True)
                 set_motor_direction(False, True)
+                dir_left = False
+                dir_backward = False
+                dir_forward = False
+                dir_right = False
                 time_last_turn_start = 0
                 finished = False
             # if direction isn't proper, then stop moving change direction and start moving
@@ -554,6 +559,10 @@ def main_loop():
                 set_motor_direction(True, True)
                 set_motor_direction(False, True)
                 was_automated = True
+                dir_left = False
+                dir_backward = False
+                dir_forward = False
+                dir_right = False
                 gps_target = get_next_gps_target()
                 time_last_turn_start = 0
                 finished = False
