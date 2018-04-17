@@ -29,7 +29,7 @@ gps_lat_points = set()
 gps_lon_points = set()
 direction_points = set()
 sonar_points = set()
-current_pwm = [0, 0]
+current_pwm = {0, 0}
 
 # Pin Number Variables
 left_motor_direction_pin = 15
