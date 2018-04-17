@@ -621,7 +621,6 @@ try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
-    # trace_loop = True
     #thread3 = Background_Thread(sonar_loop)
     thread2 = Background_Thread(gps_loop)
     main_loop()
