@@ -13,6 +13,7 @@ from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 from websocket_server import WebsocketServer
 
 from Background_Thread import Background_Thread
+
 # from headingcalculator import HeadingCalculator
 
 # from LIS3MDL import LIS3MDL
@@ -117,6 +118,7 @@ class web_socket_server(WebSocket):
     def __init__(self, server, sock, address):
         print("web socket handler made")
         super().__init__(server, sock, address)
+
     def handle_message(self):
         print("message recieved: " + str(self.data))
         json_input = web_socket_handler(self.data)
@@ -514,7 +516,7 @@ def web_socket_loop():
     server = SimpleWebSocketServer('', 8081, web_socket_server)
     while True:
         server.serveonce()
-        if True:
+        if trace_loop:
             print("websocket loop")
 
 
@@ -652,10 +654,10 @@ try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
-    #trace_loop = True
+    # trace_loop = True
     thread3 = Background_Thread(sonar_loop)
-    #thread2 = Background_Thread(gps_loop)
-    #main_loop()
+    # thread2 = Background_Thread(gps_loop)
+    # main_loop()
     while True:
         time.sleep(1)
 except Exception as error:
