@@ -514,7 +514,7 @@ def web_socket_loop():
     server = SimpleWebSocketServer('', 8081, web_socket_server)
     while True:
         server.serveonce()
-        if trace_loop:
+        if True:
             print("websocket loop")
 
 
