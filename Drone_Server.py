@@ -139,19 +139,21 @@ def get_json_string():
         "current_longitude": current_longitude,
         "current_direction_degrees": current_direction_degrees,
         "current_distance_ahead": current_distance_ahead,
-        "stop_everything": stop_everything
+        "stop_everything": stop_everything,
+        "automated": automated_mode
     }
     return json.dumps(data)
 
 
 def set_json_variables(json_string):
-    global moving_forward, moving_backward, moving_left, moving_right, stop_everything
+    global moving_forward, moving_backward, moving_left, moving_right, stop_everything, automated_mode
     json_data = json.loads(json_string)
     moving_forward = bool(json_data["moving_forward"])
     moving_backward = bool(json_data["moving_backward"])
     moving_right = bool(json_data["moving_right"])
     moving_left = bool(json_data["moving_left"])
     stop_everything = bool(json_data["stop_everything"])
+    automated_mode = bool(json_data["automated"])
 
 
 def get_position():
