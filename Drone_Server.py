@@ -95,9 +95,6 @@ finished = False
 
 
 class web_socket_server(WebSocket):
-    def __init__(self, server, sock, address):
-        print("web socket handler made")
-        super().__init__(server, sock, address)
 
     def handle_message(self):
         print("message recieved: " + str(self.data))
