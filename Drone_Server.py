@@ -519,10 +519,7 @@ def gps_loop():
 
 def web_socket_loop():
     server = SimpleWebSocketServer('', 8081, web_socket_server)
-    while True:
-        server.serveonce()
-        if trace_loop:
-            print("websocket loop")
+    server.serveforever()
 
 
 def correct_automated_direction():
