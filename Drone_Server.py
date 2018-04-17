@@ -13,7 +13,7 @@ from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 from websocket_server import WebsocketServer
 
 from Background_Thread import Background_Thread
-from headingcalculator import HeadingCalculator
+# from headingcalculator import HeadingCalculator
 
 # from LIS3MDL import LIS3MDL
 # from LSM6DS33 import LSM6DS33
