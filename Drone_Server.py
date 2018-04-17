@@ -498,7 +498,7 @@ def gps_loop():
 
 
 def web_socket_loop():
-    server = SimpleWebSocketServer('', 8081, web_socket_server)
+    server = SimpleWebSocketServer('', 8181, web_socket_server)
     server.serveforever()
 
 
