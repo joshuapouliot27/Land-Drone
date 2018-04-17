@@ -104,6 +104,8 @@ class web_socket_server(WebSocket):
 
     def handleConnected(self):
         print("client connected")
+        json_input = web_socket_handler("return")
+        self.sendMessage(json_input)
 
     def handleClose(self):
         print("client disconnected")
