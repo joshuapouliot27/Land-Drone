@@ -589,11 +589,13 @@ def main_loop():
                     set_motor_speed(1, False, False)
                     time.sleep(2)
                     time_last_turn_start = time.time()
+                    time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
                 else:
                     set_motor_speed(1, False, True)
                     set_motor_speed(1 - less_turn_percent, False, False)
                     time.sleep(2)
                     time_last_turn_start = time.time()
+                    time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
             elif current_distance_ahead >= sonar_min_distance and not stop_everything \
                     and (current_pwm[0] < max_left_pwm or current_pwm[1] < max_right_pwm) \
                     and current_distance_away >= gps_tolerance and not finished \
