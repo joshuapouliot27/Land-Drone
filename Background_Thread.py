@@ -13,4 +13,7 @@ class Background_Thread(object):
         thread.start()                                  # Start the execution
 
     def run(self):
-        self.function(*self.arguments)
+        if len(self.arguments) > 0:
+            self.function(*self.arguments)
+        else:
+            self.function()
