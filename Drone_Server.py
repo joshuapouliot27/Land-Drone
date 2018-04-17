@@ -6,7 +6,7 @@ import time
 import Math
 
 import RPi.GPIO as GPIO
-from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
+from websocket_server import WebsocketServer
 
 from Background_Thread import Background_Thread
 
@@ -94,27 +94,10 @@ gps_points = [
 finished = False
 
 
-class web_socket_server(WebSocket):
-
-    def handle_message(self):
-        print("message recieved: " + str(self.data))
-        #json_input = web_socket_handler(self.data)
-        #if json_input is not None:
-            #self.sendMessage(json_input)
-
-    def handleConnected(self):
-        print("client connected")
-        json_input = web_socket_handler("return")
-        self.sendMessage(json_input)
-
-    def handleClose(self):
-        print("client disconnected")
-
-
-def web_socket_handler(message):
+def web_socket_handler(client, server, message):
     if "return" in message:
         json_data = get_json_string()
-        return json_data
+        server.send_message(client, json_data)
     else:
         set_json_variables(message)
         return None
@@ -498,8 +481,9 @@ def gps_loop():
 
 
 def web_socket_loop():
-    server = SimpleWebSocketServer('', 8181, web_socket_server)
-    server.serveforever()
+    server = WebsocketServer(8181)
+    server.set_fn_message_received(web_socket_handler)
+    server.run_forever()
 
 
 def correct_automated_direction():
