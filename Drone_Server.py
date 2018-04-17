@@ -274,7 +274,7 @@ def ramp_pwm(end, isLeft):
             else:
                 new_pwm = current_pwm[1] - left_over
             set_pwm_freq(isLeft, new_pwm)
-        print("final pwm: " + str(new_pwm))
+        print("left: "+str(isLeft)+" final pwm: " + str(new_pwm))
     else:
         steps = math.fabs((beginning - end) // step_max)
         left_over = math.fabs((beginning - end)) - steps * step_max
@@ -291,7 +291,7 @@ def ramp_pwm(end, isLeft):
             else:
                 new_pwm = current_pwm[1] + left_over
             set_pwm_freq(isLeft, new_pwm)
-        print("final pwm: " + str(new_pwm))
+        print("left: "+str(isLeft)+" final pwm: " + str(new_pwm))
 
 
 def set_pwm_freq(is_left, freq):
