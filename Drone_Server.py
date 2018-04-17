@@ -482,7 +482,7 @@ def gps_loop():
 
 
 def web_socket_loop():
-    server = WebsocketServer(8181)
+    server = WebsocketServer(8181, host='0.0.0.0')
     server.set_fn_message_received(web_socket_handler)
     server.run_forever()
 
@@ -620,14 +620,11 @@ def main_loop():
 try:
     setup()
     print("Setup complete!")
-    #thread = Background_Thread(web_socket_loop)
+    thread = Background_Thread(web_socket_loop)
     # trace_loop = True
     #thread3 = Background_Thread(sonar_loop)
-    # thread2 = Background_Thread(gps_loop)
-    # main_loop()
-    #while True:
-        #time.sleep(1)
-    web_socket_loop()
+    thread2 = Background_Thread(gps_loop)
+    main_loop()
 except Exception as error:
     set_pwm_freq(False, 0)
     set_pwm_freq(True, 0)
