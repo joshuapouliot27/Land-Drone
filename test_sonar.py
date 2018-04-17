@@ -18,7 +18,7 @@ time.sleep(.05)
 GPIO.output(sonar_trig_pin, True)
 time.sleep(.000001)
 GPIO.output(sonar_trig_pin, False)
-print("send pulse")
+
 while GPIO.input(sonar_echo_pin) == 0:
     time_start = time.time()
 while GPIO.input(sonar_echo_pin) == 1:
