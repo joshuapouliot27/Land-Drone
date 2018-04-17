@@ -329,7 +329,7 @@ def ramp_pwm(end, isLeft):
             new_pwm = current_pwm[0] + left_over
         else:
             new_pwm = current_pwm[1] + left_over
-        set_pwm_freq(True, new_pwm)
+        set_pwm_freq(isLeft, new_pwm)
         current_pwm = new_pwm
         time.sleep(1 / step_freq)
         print("final pwm: " + str(new_pwm))
