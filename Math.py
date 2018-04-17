@@ -13,10 +13,10 @@ def distance_between_points(lat1, lat2, lon1, lon2):
     theta_1 = math.radians(lat1)
     theta_2 = math.radians(lat2)
     change_theta = math.radians(lat2 - lat1)
-    change_lamdba = math.radians(lon2 - lon1)
+    change_lambda = math.radians(lon2 - lon1)
     square_half_chord_length = (math.sin(change_theta / 2) ** 2) \
                                + ((math.cos(theta_1) * math.cos(theta_2))
-                                  * (math.sin(change_lamdba / 2) ** 2))
+                                  * (math.sin(change_lambda / 2) ** 2))
     angular_distance = 2 * math.atan2(math.sqrt(square_half_chord_length), math.sqrt(1 - square_half_chord_length))
     distance = earth_radius * angular_distance
     return distance

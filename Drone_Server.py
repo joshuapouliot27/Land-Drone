@@ -1,10 +1,12 @@
 from multiprocessing import Process, Queue
+from typing import List
 
 import gpsd
 import json
 import logging
 import math
 import time
+import Math
 
 import RPi.GPIO as GPIO
 from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
@@ -12,6 +14,7 @@ from websocket_server import WebsocketServer
 
 from Background_Thread import Background_Thread
 from headingcalculator import HeadingCalculator
+
 # from LIS3MDL import LIS3MDL
 # from LSM6DS33 import LSM6DS33
 
@@ -35,7 +38,7 @@ gps_lon_points = set()
 direction_points = set()
 imu_points = set()
 sonar_points = set()
-current_pwm = [0,0]
+current_pwm: List[int] = [0, 0]
 
 # Pin Number Variables
 left_motor_direction_pin = 15
@@ -69,8 +72,10 @@ gps_points_num_averaging = 5
 trace = True
 trace_loop = False
 all_stop = False
-max_pwm = 20000
-max_turn_pwm = 8000
+max_left_pwm = 20000
+max_right_pwm = 20000
+max_left_turn_pwm = 8000
+max_right_turn_pwm = 8000
 less_turn_percent = 0.2
 accelerometer_threshold = 0.05
 accelerometer_offset_x = -0.007706830092610056
@@ -78,13 +83,37 @@ accelerometer_offset_y = -0.9543302538970905
 
 # Automated Variables
 automated_mode = False
-gps_target = [0,0]
+was_automated = False
+sonar_min_distance = 1
+gps_target = [0, 0]
 direction_target = 0
-gps_tolerance = 0
-direction_tolerance = 5
+gps_tolerance = 4  # in meters
+direction_tolerance = 5  # in degrees
+current_gps_index = -1
+gps_points = [
+    [44.9063300, -68.6683193],
+    [44.9063243, -68.6682348],
+    [44.9062683, -68.6681932],
+    [44.9062256, -68.6680524],
+    [44.9062740, -68.6679786],
+    [44.9063576, -68.6679491],
+    [44.9068411, -68.6680645],
+    [44.9069075, -68.6681315],
+    [44.9069505, -68.6683270],
+    [44.9069161, -68.6687002],
+    [44.9068230, -68.6688034],
+    [44.9066948, -68.6688343],
+    [44.9062085, -68.6687592],
+    [44.9061610, -68.6657135],
+    [44.9061610, -68.6686090],
+    [44.9062142, -68.6685312],
+    [44.9062977, -68.6684856],
+    [44.9063224, -68.6683971]
+]  # [[lat, lon], [lat, lon]...]
+finished = False
 
 
-class Websocket_Server(WebSocket):
+class web_socket_Server(WebSocket):
     def handle_message(self):
         json_input = web_socket_handler(self.data)
         if json_input is not None:
@@ -253,8 +282,6 @@ def setup_logging():
                         filename="drone.log", level=logging.DEBUG)
 
 
-
-
 def ramp_pwm(end, isLeft):
     global current_pwm
     if isLeft:
@@ -315,44 +342,49 @@ def set_pwm_freq(is_left, freq):
     if is_left:
         if (freq <= 0) and (current_pwm > 0):
             left_motor_pwm.stop()
-            current_pwm = 0
+            current_pwm[0] = 0
         elif 500 <= freq <= 20000 and current_pwm > 0:
             left_motor_pwm.ChangeFrequency(freq)
-            current_pwm = freq
+            current_pwm[0] = freq
         elif 500 <= freq <= 20000 and current_pwm <= 0:
             left_motor_pwm.start(50)
             left_motor_pwm.ChangeFrequency(freq)
-            current_pwm = freq
+            current_pwm[0] = freq
     else:
         if (freq <= 0) and (current_pwm > 0):
             right_motor_pwm.stop()
+            current_pwm[1] = 0
         elif 500 <= freq <= 20000 and current_pwm > 0:
             right_motor_pwm.ChangeFrequency(freq)
+            current_pwm[1] = freq
         elif 500 <= freq <= 20000 and current_pwm <= 0:
             right_motor_pwm.start(50)
             right_motor_pwm.ChangeFrequency(freq)
+            current_pwm[1] = freq
 
 
-def set_motor_speed(percent, emergency=False):
+def set_motor_speed(percent, emergency=False, is_left=None):
     logging.info("Set motor speed to " + str(percent) + "%!")
-    if emergency:
+    if emergency and is_left is None:
         if not dir_left and not dir_right:
-            end_freq = percent * max_pwm
-            set_pwm_freq(False, end_freq)
-            set_pwm_freq(True, end_freq)
+            set_pwm_freq(False, percent * max_right_pwm)
+            set_pwm_freq(True, percent * max_left_pwm)
         else:
-            end_freq = percent * max_turn_pwm
-            set_pwm_freq(False, end_freq)
-            set_pwm_freq(True, end_freq)
+            set_pwm_freq(False, percent * max_right_turn_pwm)
+            set_pwm_freq(True, percent * max_left_turn_pwm)
+    elif is_left is None:
+        if not dir_left and not dir_right:
+            thread = Background_Thread(ramp_pwm, (percent * max_left_pwm, True))
+            thread2 = Background_Thread(ramp_pwm, (percent * max_right_pwm, False))
+        else:
+            thread = Background_Thread(ramp_pwm, (percent * max_left_turn_pwm, True))
+            thread2 = Background_Thread(ramp_pwm, (percent * max_right_turn_pwm, False))
     else:
-        if not dir_left and not dir_right:
-            end_freq = percent * max_pwm
-            thread = Background_Thread(ramp_pwm, (end_freq, True))
-            thread = Background_Thread(ramp_pwm, (end_freq, False))
+        if is_left:
+            end_freq = percent * max_left_pwm
         else:
-            end_freq = percent * max_turn_pwm
-            thread = Background_Thread(ramp_pwm, (end_freq, True))
-            thread = Background_Thread(ramp_pwm, (end_freq, False))
+            end_freq = percent * max_right_pwm
+        thread = Background_Thread(ramp_pwm, (end_freq, is_left))
 
 
 def set_motor_direction(is_left, forward):
@@ -464,8 +496,9 @@ def gps_loop():
 
 
 def web_socket_loop():
-    server = SimpleWebSocketServer('', 8081, Websocket_Server)
+    server = SimpleWebSocketServer('', 8081, web_socket_Server)
     server.serveforever()
+
 
 def correct_automated_direction():
     if math.fabs(current_direction_degrees - direction_target) < direction_tolerance:
@@ -492,6 +525,7 @@ def should_turn_left():
     else:
         return False
 
+
 def is_moving():
     if current_pwm[0] > 0 or current_pwm[1] > 0:
         return True
@@ -499,7 +533,22 @@ def is_moving():
         return False
 
 
+def reset_gps_target():
+    global current_gps_index
+    current_gps_index = -1
+
+
+def get_next_gps_target():
+    global current_gps_index
+    current_gps_index += 1
+    if current_gps_index >= len(gps_points):
+        return None
+    else:
+        return gps_points[current_gps_index]
+
+
 def main_loop():
+    global was_automated, automated_mode, gps_target, direction_target, finished
     while True:
 
         if trace_loop:
@@ -512,10 +561,17 @@ def main_loop():
         #       sonar_loop()
 
         # Distance Sensor
-        if (stop_everything or current_distance_ahead <= 1) and current_pwm > 0:
+        if (stop_everything or current_distance_ahead <= sonar_min_distance) and current_pwm > 0:
             print("obstacle in the way or stop pressed, emergency stopping")
             set_motor_speed(0, True)
         if not automated_mode:
+            if was_automated:
+                reset_gps_target()
+                was_automated = False
+                set_motor_speed(0)
+                set_motor_direction(True, True)
+                set_motor_direction(False, True)
+                finished = False
             # if direction isn't proper, then stop moving change direction and start moving
             if not is_proper_direction():
                 print("changing proper direction")
@@ -527,19 +583,49 @@ def main_loop():
                 set_motor_speed(1)
 
             # If distance is fine and remote button isn't pressed and not moving, then start moving
-            if current_distance_ahead > 1 and not is_moving() \
+            if current_distance_ahead > sonar_min_distance and not is_moving() \
                     and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
                 print("started moving")
                 set_motor_speed(1)
 
             # if not supposed to be moving, but is moving then stop moving
-            if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
+            if ((
+                        not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
                     and is_moving():
                 print("stopping motion")
                 set_motor_speed(0)
         else:
-            if not correct_automated_direction():
+            if not was_automated:
+                reset_gps_target()
+                set_motor_speed(0)
+                set_motor_direction(True, True)
+                set_motor_direction(False, True)
+                was_automated = True
+                gps_target = get_next_gps_target()
+                finished = False
 
+            current_distance_away = Math.distance_between_points(current_latitude, gps_target[0],
+                                                                 current_longitude, gps_target[1])
+            direction_target = Math.heading_between_points(current_latitude, gps_target[0],
+                                                           current_longitude, gps_target[1])
+
+            if not correct_automated_direction() and not stop_everything and not finished:
+                if should_turn_left():
+                    set_motor_speed(1 - less_turn_percent, False, True)
+                    set_motor_speed(1, False, True)
+                else:
+                    set_motor_speed(1, False, True)
+                    set_motor_speed(1 - less_turn_percent, False, True)
+            elif current_distance_ahead >= sonar_min_distance and not stop_everything \
+                    and (current_pwm[0] < max_left_pwm or current_pwm[1] < max_right_pwm) \
+                    and current_distance_away <= gps_tolerance and not finished:
+                set_motor_speed(1)
+
+            if current_distance_away < gps_tolerance and not finished:
+                gps_target = get_next_gps_target()
+                if gps_target is None:
+                    finished = True
+                    set_motor_speed(0)
 
         time.sleep(1 / main_loop_frequency)
 
