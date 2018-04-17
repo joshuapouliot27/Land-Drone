@@ -1,1 +1,1 @@
-pscp *.py python@raspberrypi.local:~/Land_Drone/
+pscp *.py python@raspberrypi.local:/home/python/Land-Drone
