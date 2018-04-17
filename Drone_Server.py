@@ -317,7 +317,6 @@ def set_pwm_freq(is_left, freq):
             left_motor_pwm.ChangeFrequency(freq)
             current_pwm[0] = freq
     else:
-        print("right motor: "+str(freq))
         if (freq <= 0) and current_pwm[1] > 0:
             right_motor_pwm.stop()
             current_pwm[1] = 0
