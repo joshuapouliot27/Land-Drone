@@ -278,20 +278,12 @@ def ramp_pwm(end, isLeft):
             else:
                 new_pwm = current_pwm[1] - step_max
             set_pwm_freq(isLeft, new_pwm)
-            if isLeft:
-                current_pwm[0] = new_pwm
-            else:
-                current_pwm[1] = new_pwm
             time.sleep(1 / step_freq)
         if isLeft:
             new_pwm = current_pwm[0] - left_over
         else:
             new_pwm = current_pwm[1] - left_over
         set_pwm_freq(isLeft, new_pwm)
-        if isLeft:
-            current_pwm[0] = new_pwm
-        else:
-            current_pwm[1] = new_pwm
         time.sleep(1 / step_freq)
         print("final pwm: " + str(new_pwm))
     else:
@@ -303,20 +295,12 @@ def ramp_pwm(end, isLeft):
             else:
                 new_pwm = current_pwm[1] + step_max
             set_pwm_freq(isLeft, new_pwm)
-            if isLeft:
-                current_pwm[0] = new_pwm
-            else:
-                current_pwm[1] = new_pwm
             time.sleep(1 / step_freq)
         if isLeft:
             new_pwm = current_pwm[0] + left_over
         else:
             new_pwm = current_pwm[1] + left_over
         set_pwm_freq(isLeft, new_pwm)
-        if isLeft:
-            current_pwm[0] = new_pwm
-        else:
-            current_pwm[1] = new_pwm
         time.sleep(1 / step_freq)
         print("final pwm: " + str(new_pwm))
 
@@ -363,9 +347,11 @@ def set_motor_speed(percent, emergency=False, is_left=None):
         if not dir_left and not dir_right:
             thread = Background_Thread(ramp_pwm, (percent * max_left_pwm, True))
             thread2 = Background_Thread(ramp_pwm, (percent * max_right_pwm, False))
+            time.sleep(2)
         else:
             thread = Background_Thread(ramp_pwm, (percent * max_left_turn_pwm, True))
             thread2 = Background_Thread(ramp_pwm, (percent * max_right_turn_pwm, False))
+            time.sleep(2)
     else:
         if is_left:
             end_freq = percent * max_left_pwm
@@ -601,9 +587,11 @@ def main_loop():
                 if should_turn_left():
                     set_motor_speed(1 - less_turn_percent, False, True)
                     set_motor_speed(1, False, True)
+                    time.sleep(2)
                 else:
                     set_motor_speed(1, False, True)
                     set_motor_speed(1 - less_turn_percent, False, True)
+                    time.sleep(2)
             elif current_distance_ahead >= sonar_min_distance and not stop_everything \
                     and (current_pwm[0] < max_left_pwm or current_pwm[1] < max_right_pwm) \
                     and current_distance_away <= gps_tolerance and not finished:
