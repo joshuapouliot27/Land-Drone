@@ -121,6 +121,7 @@ class web_socket_Server(WebSocket):
 
 
 def web_socket_handler(message):
+    print("message recieved: "+str(message))
     if "return" in message:
         json_data = get_json_string()
         return json_data
@@ -510,6 +511,7 @@ def web_socket_loop():
     server = SimpleWebSocketServer('', 8081, web_socket_Server)
     print("websocket started!")
     server.serveforever()
+    print("websocket ended")
 
 
 def correct_automated_direction():
