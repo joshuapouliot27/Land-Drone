@@ -1,6 +1,3 @@
-from multiprocessing import Process, Queue
-from typing import List
-
 import gpsd
 import json
 import logging
@@ -12,11 +9,6 @@ import RPi.GPIO as GPIO
 from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 
 from Background_Thread import Background_Thread
-
-# from headingcalculator import HeadingCalculator
-
-# from LIS3MDL import LIS3MDL
-# from LSM6DS33 import LSM6DS33
 
 moving_left = False
 moving_right = False
@@ -36,9 +28,8 @@ stop_everything = False
 gps_lat_points = set()
 gps_lon_points = set()
 direction_points = set()
-imu_points = set()
 sonar_points = set()
-current_pwm: List[int] = [0, 0]
+current_pwm: list[int] = [0, 0]
 
 # Pin Number Variables
 left_motor_direction_pin = 15
@@ -52,21 +43,14 @@ sonar_echo_pin = 22
 left_motor_pwm: GPIO.PWM = None
 right_motor_pwm: GPIO.PWM = None
 
-# # IMU Variables
-# magnetometer: LIS3MDL = None
-# accelerometer_gyroscope: LSM6DS33 = None
-# heading_calculator: HeadingCalculator = None
-
 # Frequency variables
 main_loop_frequency = 5000
-# imu_frequency = 5000
 gps_frequency = 5000
 sonar_frequency = 5000
 
 # Averaging variables
 sonar_points_num_averaging = 5
 gps_points_num_averaging = 5
-# imu_points_num_averaging = 5
 
 # Misc Variables
 trace = True
@@ -77,9 +61,6 @@ max_right_pwm = 20000
 max_left_turn_pwm = 8000
 max_right_turn_pwm = 8000
 less_turn_percent = 0.2
-accelerometer_threshold = 0.05
-accelerometer_offset_x = -0.007706830092610056
-accelerometer_offset_y = -0.9543302538970905
 
 # Automated Variables
 automated_mode = False
@@ -120,9 +101,9 @@ class web_socket_server(WebSocket):
 
     def handle_message(self):
         print("message recieved: " + str(self.data))
-        json_input = web_socket_handler(self.data)
-        if json_input is not None:
-            self.sendMessage(json_input)
+        #json_input = web_socket_handler(self.data)
+        #if json_input is not None:
+            #self.sendMessage(json_input)
 
     def handleConnected(self):
         print("client connected")
