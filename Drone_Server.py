@@ -61,7 +61,7 @@ max_left_pwm = 20000
 max_right_pwm = 20000 * (1-.15)
 max_left_turn_pwm = 8000
 max_right_turn_pwm = 8000
-less_turn_percent = 0.3
+less_turn_percent = 0.5
 
 # Automated Variables
 time_last_turn_start = 0
