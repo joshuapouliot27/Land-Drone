@@ -623,13 +623,12 @@ def main_loop():
 
 
 try:
-    # setup()
-    # print("Setup complete!")
-    # thread = Background_Thread(web_socket_loop)
+    setup()
+    print("Setup complete!")
+    thread = Background_Thread(web_socket_loop)
     # thread3 = Background_Thread(sonar_loop)
     # thread2 = Background_Thread(gps_loop)
-    # main_loop()
-    web_socket_loop()
+    main_loop()
 except Exception as error:
     set_pwm_freq(False, 0)
     set_pwm_freq(True, 0)
