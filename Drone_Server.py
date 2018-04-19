@@ -58,9 +58,9 @@ trace = True
 trace_loop = False
 all_stop = False
 max_left_pwm = 20000
-max_right_pwm = 20000 * (1-.35)
+max_right_pwm = 20000 * (1 - .35)
 max_left_turn_pwm = 8000
-max_right_turn_pwm = 8000 * (1-.35)
+max_right_turn_pwm = 8000 * (1 - .35)
 less_turn_percent = 0.5
 
 # Automated Variables
@@ -100,7 +100,7 @@ house_gps_points = [
     [44.924985, -68.645432],
     [44.924684, -68.647174]
 ]  # 4 points along streets near house
-#gps_points = field_gps_points
+# gps_points = field_gps_points
 gps_points = house_gps_points
 finished = False
 
@@ -260,7 +260,7 @@ def setup_logging():
 
 def ramp_pwm(end, isLeft):
     global current_pwm
-    print("left: "+str(isLeft)+", set pwm to "+str(end))
+    print("left: " + str(isLeft) + ", set pwm to " + str(end))
     if isLeft:
         beginning = current_pwm[0]
     else:
@@ -554,7 +554,8 @@ def main_loop():
                 set_motor_speed(0, True)
 
             # if not supposed to be moving, but is moving then stop moving
-            if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
+            if ((
+                        not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
                     and is_moving():
                 print("stopping motion")
                 set_motor_speed(0)
@@ -625,7 +626,7 @@ try:
     setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
-    # thread3 = Background_Thread(sonar_loop)
+    #thread3 = Background_Thread(sonar_loop)
     thread2 = Background_Thread(gps_loop)
     main_loop()
 except Exception as error:
