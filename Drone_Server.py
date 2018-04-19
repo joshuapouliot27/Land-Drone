@@ -631,10 +631,10 @@ try:
     # main_loop()
     while True:
         time.sleep(1)
-except Exception as error:
-    set_pwm_freq(False, 0)
-    set_pwm_freq(True, 0)
-    print("ERROR: " + str(error))
-    all_stop = True
-    GPIO.cleanup()
-    print("cleaned up!")
+# except Exception as error:
+#     set_pwm_freq(False, 0)
+#     set_pwm_freq(True, 0)
+#     print("ERROR: " + str(error))
+#     all_stop = True
+#     GPIO.cleanup()
+#     print("cleaned up!")
