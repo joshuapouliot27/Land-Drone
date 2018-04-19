@@ -532,7 +532,7 @@ def main_loop():
                 time_last_turn_start = 0
                 finished = False
             # if direction isn't proper, then stop moving change direction and start moving
-            if not is_proper_direction():
+            if not is_proper_direction() and not stop_everything:
                 print("changing proper direction")
                 if is_moving():
                     set_motor_speed(0)
