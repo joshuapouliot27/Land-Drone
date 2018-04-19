@@ -629,10 +629,10 @@ try:
     thread2 = Background_Thread(gps_loop)
     #main_loop()
     web_socket_loop()
-except Exception as error:
-    set_pwm_freq(False, 0)
-    set_pwm_freq(True, 0)
-    print("ERROR: " + str(error))
-    all_stop = True
-    GPIO.cleanup()
-    print("cleaned up!")
+# except Exception as error:
+#     set_pwm_freq(False, 0)
+#     set_pwm_freq(True, 0)
+#     print("ERROR: " + str(error))
+#     all_stop = True
+#     GPIO.cleanup()
+#     print("cleaned up!")
