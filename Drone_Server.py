@@ -622,7 +622,7 @@ def main_loop():
         time.sleep(1 / main_loop_frequency)
 
 
-try:
+#try:
     # setup()
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
