@@ -306,6 +306,7 @@ def ramp_pwm(end, isLeft):
 
 
 def set_pwm_freq(is_left, freq):
+    print("set pwm to "+str(freq)+", isleft: "+str(is_left))
     global current_pwm
     if is_left:
         if freq is current_pwm[0]:
@@ -338,7 +339,7 @@ def set_pwm_freq(is_left, freq):
 
 
 def set_motor_speed(percent, emergency=False, is_left=None):
-    print("Set motor speed to " + str(percent) + "%, emergency: "+str(emergency)+" isleft: "+str(is_left))
+    print("Set motor speed to " + str(percent*100) + "%, emergency: "+str(emergency)+" isleft: "+str(is_left))
     if emergency and is_left is None:
         if not dir_left and not dir_right:
             set_pwm_freq(False, percent * max_right_pwm)
@@ -352,8 +353,8 @@ def set_motor_speed(percent, emergency=False, is_left=None):
             thread2 = Background_Thread(ramp_pwm, (percent * max_right_pwm, False))
             time.sleep(2)
         else:
-            thread = Background_Thread(set_pwm_freq, (percent * max_left_turn_pwm, True))
-            thread2 = Background_Thread(set_pwm_freq, (percent * max_right_turn_pwm, False))
+            set_pwm_freq(True, percent * max_left_turn_pwm)
+            set_pwm_freq(False, percent * max_right_turn_pwm)
             time.sleep(2)
     else:
         if is_left:
