@@ -338,7 +338,7 @@ def set_pwm_freq(is_left, freq):
 
 
 def set_motor_speed(percent, emergency=False, is_left=None):
-    logging.info("Set motor speed to " + str(percent) + "%!")
+    print("Set motor speed to " + str(percent) + "%, emergency: "+str(emergency)+" isleft: "+str(is_left))
     if emergency and is_left is None:
         if not dir_left and not dir_right:
             set_pwm_freq(False, percent * max_right_pwm)
