@@ -57,11 +57,11 @@ gps_points_num_averaging = 5
 trace = True
 trace_loop = False
 all_stop = False
-max_left_pwm = 20000
-max_right_pwm = 20000 * (1 - .35)
+max_left_pwm = 2300
+max_right_pwm = max_left_pwm * (1 - .35)
 max_left_turn_pwm = 1500
 max_right_turn_pwm = 1500
-less_turn_percent = 0.5
+less_turn_percent = 0.35
 
 # Automated Variables
 time_last_turn_start = 0
@@ -254,10 +254,10 @@ def setup_logging():
                         filename="drone.log", level=logging.DEBUG)
 
 
-def ramp_pwm(end, isLeft):
+def ramp_pwm(end, is_left):
     global current_pwm
-    print("left: " + str(isLeft) + ", set pwm to " + str(end))
-    if isLeft:
+    print("left: " + str(is_left) + ", set pwm to " + str(end))
+    if is_left:
         beginning = current_pwm[0]
     else:
         beginning = current_pwm[1]
@@ -270,35 +270,35 @@ def ramp_pwm(end, isLeft):
         left_over = math.fabs((beginning - end)) - steps * step_max
         new_pwm = 0
         for x in range(0, int(steps)):
-            if isLeft:
+            if is_left:
                 new_pwm = current_pwm[0] - step_max
             else:
                 new_pwm = current_pwm[1] - step_max
-            set_pwm_freq(isLeft, new_pwm)
+            set_pwm_freq(is_left, new_pwm)
             time.sleep(step_freq)
         if left_over > 0:
-            if isLeft:
+            if is_left:
                 new_pwm = current_pwm[0] - left_over
             else:
                 new_pwm = current_pwm[1] - left_over
-            set_pwm_freq(isLeft, new_pwm)
+            set_pwm_freq(is_left, new_pwm)
     else:
         steps = math.fabs((beginning - end) // step_max)
         left_over = math.fabs((beginning - end)) - steps * step_max
         new_pwm = 0
         for x in range(0, int(steps)):
-            if isLeft:
+            if is_left:
                 new_pwm = current_pwm[0] + step_max
             else:
                 new_pwm = current_pwm[1] + step_max
-            set_pwm_freq(isLeft, new_pwm)
+            set_pwm_freq(is_left, new_pwm)
             time.sleep(step_freq)
         if left_over > 0:
-            if isLeft:
+            if is_left:
                 new_pwm = current_pwm[0] + left_over
             else:
                 new_pwm = current_pwm[1] + left_over
-            set_pwm_freq(isLeft, new_pwm)
+            set_pwm_freq(is_left, new_pwm)
 
 
 def set_pwm_freq(is_left, freq):
@@ -344,19 +344,17 @@ def set_motor_speed(percent, emergency=False, is_left=None):
             set_pwm_freq(True, percent * max_left_turn_pwm)
     elif is_left is None:
         if not dir_left and not dir_right:
-            thread = Background_Thread(ramp_pwm, (percent * max_left_pwm, True))
-            thread2 = Background_Thread(ramp_pwm, (percent * max_right_pwm, False))
-            time.sleep(2)
+            set_pwm_freq(True, percent * max_left_pwm)
+            set_pwm_freq(False, percent * max_right_pwm)
         else:
             set_pwm_freq(True, percent * max_left_turn_pwm)
             set_pwm_freq(False, percent * max_right_turn_pwm)
-            time.sleep(2)
     else:
         if is_left:
             end_freq = percent * max_left_pwm
         else:
             end_freq = percent * max_right_pwm
-        thread = Background_Thread(ramp_pwm, (end_freq, is_left))
+        thread = Background_Thread(set_pwm_freq, (is_left, end_freq))
 
 
 def set_motor_direction(is_left, forward):
@@ -583,13 +581,11 @@ def main_loop():
                 if should_turn_left():
                     set_motor_speed(1 - less_turn_percent, False, True)
                     set_motor_speed(1, False, False)
-                    time.sleep(2)
                     time_last_turn_start = time.time()
                     time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
                 else:
                     set_motor_speed(1, False, True)
                     set_motor_speed(1 - less_turn_percent, False, False)
-                    time.sleep(2)
                     time_last_turn_start = time.time()
                     time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
             elif current_distance_ahead >= sonar_min_distance and not stop_everything \
@@ -597,7 +593,6 @@ def main_loop():
                     and current_distance_away >= gps_tolerance and not finished \
                     and time_since_last_turn < turn_min_time:
                 set_motor_speed(1)
-                time.sleep(2)
                 time_last_turn_start = time.time()
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
