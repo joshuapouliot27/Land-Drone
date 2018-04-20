@@ -57,11 +57,12 @@ gps_points_num_averaging = 5
 trace = True
 trace_loop = False
 all_stop = False
-max_left_pwm = 3500
-max_right_pwm = max_left_pwm * (1 - .35)
+less_turn_percent = 0.35
+right_motor_less_pwm_percent = 0.35
+max_left_pwm = (1500 / right_motor_less_pwm_percent) / less_turn_percent
+max_right_pwm = max_left_pwm * (1 - right_motor_pwm)
 max_left_turn_pwm = 1500
 max_right_turn_pwm = 1500
-less_turn_percent = 0.35
 
 # Automated Variables
 time_last_turn_start = 0
