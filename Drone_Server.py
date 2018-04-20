@@ -302,7 +302,6 @@ def ramp_pwm(end, isLeft):
 
 
 def set_pwm_freq(is_left, freq):
-    print("set pwm to "+str(freq)+", isleft: "+str(is_left))
     global current_pwm
     if is_left:
         if freq is current_pwm[0]:
@@ -335,7 +334,7 @@ def set_pwm_freq(is_left, freq):
 
 
 def set_motor_speed(percent, emergency=False, is_left=None):
-    print("Set motor speed to " + str(percent*100) + "%, emergency: "+str(emergency)+" isleft: "+str(is_left))
+    print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "Set motor speed to " + str(percent*100) + "%, emergency: "+str(emergency)+" isleft: "+str(is_left))
     if emergency and is_left is None:
         if not dir_left and not dir_right:
             set_pwm_freq(False, percent * max_right_pwm)
@@ -370,7 +369,7 @@ def set_motor_direction(is_left, forward):
 def set_proper_direction():
     global dir_left, dir_backward, dir_forward, dir_right
     if moving_forward and not dir_forward:
-        logging.info("Going forward!")
+        (time.strftime('{%Y-%m-%d %H:%M:%S} ') + "set direction to forward!")
         set_motor_direction(True, True)
         set_motor_direction(False, True)
         dir_forward = True
@@ -378,7 +377,7 @@ def set_proper_direction():
         dir_right = False
         dir_backward = False
     if moving_left and not dir_left:
-        logging.info("Going left!")
+        print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "set direction to left!")
         set_motor_direction(True, False)
         set_motor_direction(False, True)
         dir_left = True
@@ -386,7 +385,7 @@ def set_proper_direction():
         dir_right = False
         dir_backward = False
     if moving_right and not dir_right:
-        logging.info("Going right!")
+        print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "set direction to right!")
         set_motor_direction(True, True)
         set_motor_direction(False, False)
         dir_right = True
@@ -394,7 +393,7 @@ def set_proper_direction():
         dir_forward = False
         dir_backward = False
     if moving_backward and not dir_backward:
-        logging.info("Going backward!")
+        print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "set direction to backward!")
         set_motor_direction(True, False)
         set_motor_direction(False, False)
         dir_backward = True
@@ -513,7 +512,7 @@ def main_loop():
 
         # Distance Sensor
         if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-            print("obstacle in the way or stop pressed("+str(current_distance_ahead)+" ft), emergency stopping")
+            print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed("+str(current_distance_ahead)+" ft), emergency stopping")
             set_motor_speed(0, True)
         if not automated_mode:
             if was_automated:
@@ -530,30 +529,30 @@ def main_loop():
                 finished = False
             # if direction isn't proper, then stop moving change direction and start moving
             if not is_proper_direction() and not stop_everything:
-                print("changing proper direction")
+                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "changing proper direction")
                 if is_moving():
                     set_motor_speed(0)
                 set_proper_direction()
                 set_motor_speed(1)
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print("obstacle in the way or stop pressed, emergency stopping")
+                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
                 set_motor_speed(0, True)
 
             # If distance is fine and remote button isn't pressed and not moving, then start moving
             if current_distance_ahead > sonar_min_distance and not is_moving() \
                     and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
-                print("started moving")
+                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "starting motors...")
                 set_motor_speed(1)
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print("obstacle in the way or stop pressed, emergency stopping")
+                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
                 set_motor_speed(0, True)
 
             # if not supposed to be moving, but is moving then stop moving
             if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
                     and is_moving():
-                print("stopping motion")
+                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "stopping motion")
                 set_motor_speed(0)
         else:
             if not was_automated:
@@ -575,7 +574,7 @@ def main_loop():
             direction_target = Math.heading_between_points(current_latitude, gps_target[0],
                                                            current_longitude, gps_target[1])
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print("obstacle in the way or stop pressed, emergency stopping")
+                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
                 set_motor_speed(0, True)
 
             time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
@@ -602,7 +601,7 @@ def main_loop():
                 time_last_turn_start = time.time()
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print("obstacle in the way or stop pressed, emergency stopping")
+                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
                 set_motor_speed(0, True)
 
             if current_distance_away <= gps_tolerance and not finished:
@@ -612,7 +611,7 @@ def main_loop():
                     set_motor_speed(0)
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print("obstacle in the way or stop pressed, emergency stopping")
+                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
                 set_motor_speed(0, True)
 
         time.sleep(1 / main_loop_frequency)
@@ -624,7 +623,9 @@ try:
     thread = Background_Thread(web_socket_loop)
     #thread3 = Background_Thread(sonar_loop)
     thread2 = Background_Thread(gps_loop)
-    main_loop()
+    thread4 = Background_Thread(main_loop)
+    while True:
+        time.sleep(.01)
 except Exception as error:
     set_pwm_freq(False, 0)
     set_pwm_freq(True, 0)
