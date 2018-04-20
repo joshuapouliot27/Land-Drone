@@ -120,10 +120,6 @@ def get_json_string():
         "moving_right": moving_right,
         "moving_forward": moving_forward,
         "moving_backward": moving_backward,
-        "current_latitude": current_latitude,
-        "current_longitude": current_longitude,
-        "current_direction_degrees": current_direction_degrees,
-        "current_distance_ahead": current_distance_ahead,
         "stop_everything": stop_everything,
         "automated": automated_mode
     }
