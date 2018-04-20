@@ -59,8 +59,8 @@ trace_loop = False
 all_stop = False
 max_left_pwm = 20000
 max_right_pwm = 20000 * (1 - .35)
-max_left_turn_pwm = 8000
-max_right_turn_pwm = 8000 * (1 - .35)
+max_left_turn_pwm = 1500
+max_right_turn_pwm = 1500 * (1 - .35)
 less_turn_percent = 0.5
 
 # Automated Variables
@@ -352,8 +352,8 @@ def set_motor_speed(percent, emergency=False, is_left=None):
             thread2 = Background_Thread(ramp_pwm, (percent * max_right_pwm, False))
             time.sleep(2)
         else:
-            thread = Background_Thread(ramp_pwm, (percent * max_left_turn_pwm, True))
-            thread2 = Background_Thread(ramp_pwm, (percent * max_right_turn_pwm, False))
+            thread = Background_Thread(set_pwm_freq, (percent * max_left_turn_pwm, True))
+            thread2 = Background_Thread(set_pwm_freq, (percent * max_right_turn_pwm, False))
             time.sleep(2)
     else:
         if is_left:
