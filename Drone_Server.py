@@ -533,6 +533,7 @@ def main_loop():
                 if is_moving():
                     set_motor_speed(0)
                 set_proper_direction()
+                time.sleep(.1)
                 set_motor_speed(1)
 
             if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
