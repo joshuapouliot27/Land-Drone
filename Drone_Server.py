@@ -58,12 +58,9 @@ trace = True
 trace_loop = False
 all_stop = False
 less_turn_percent = 0.35 # what percent less should a motor turn while in auto mated to turn while moving forward
-right_motor_less_pwm_percent = 0.50 # change to make motors go at same speed, right motor turns at (1-right_motor_less_pwm_percent)% of left motor
-left_max_motor_pwm = 1000
-right_max_motor_pwm = 1000
-max_left_pwm = int((((500 / (1 - right_motor_less_pwm_percent)) / less_turn_percent) / right_max_motor_pwm)
-                   * left_max_motor_pwm)
-max_right_pwm = int((max_left_pwm / left_max_motor_pwm) * right_max_motor_pwm * (1-right_motor_less_pwm_percent))
+right_motor_less_pwm_percent = 0.60 # change to make motors go at same speed, right motor turns at (1-right_motor_less_pwm_percent)% of left motor
+max_left_pwm = 1000
+max_right_pwm = 1000*right_motor_less_pwm_percent
 max_left_turn_pwm = 1500
 max_right_turn_pwm = 1500
 
@@ -317,10 +314,10 @@ def set_pwm_freq(is_left, freq):
         if (freq <= 0) and current_pwm[0] > 0:
             left_motor_pwm.stop()
             current_pwm[0] = 0
-        elif 1000 <= freq <= 20000 and current_pwm[0] > 0:
+        elif 100 <= freq <= 20000 and current_pwm[0] > 0:
             left_motor_pwm.ChangeFrequency(freq)
             current_pwm[0] = freq
-        elif 1000 <= freq <= 20000 and current_pwm[0] <= 0:
+        elif 100 <= freq <= 20000 and current_pwm[0] <= 0:
             left_motor_pwm.start(50)
             left_motor_pwm.ChangeFrequency(freq)
             current_pwm[0] = freq
@@ -328,10 +325,10 @@ def set_pwm_freq(is_left, freq):
         if (freq <= 0) and current_pwm[1] > 0:
             right_motor_pwm.stop()
             current_pwm[1] = 0
-        elif 1000 <= freq <= 20000 and current_pwm[1] > 0:
+        elif 100 <= freq <= 20000 and current_pwm[1] > 0:
             right_motor_pwm.ChangeFrequency(freq)
             current_pwm[1] = freq
-        elif 1000 <= freq <= 20000 and current_pwm[1] <= 0:
+        elif 100 <= freq <= 20000 and current_pwm[1] <= 0:
             right_motor_pwm.start(50)
             right_motor_pwm.ChangeFrequency(freq)
             current_pwm[1] = freq
