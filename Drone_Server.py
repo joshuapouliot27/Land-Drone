@@ -99,10 +99,7 @@ field_gps_points = [
     [44.9063224, -68.6683971]
 ]  # [[lat, lon], [lat, lon]...]
 house_gps_points = [
-    [44.925298, -68.647336],
-    [44.925618, -68.645625],
-    [44.924985, -68.645432],
-    [44.924684, -68.647174]
+    [44.924718, -68.646828]
 ]  # 4 points along streets near house
 # gps_points = field_gps_points
 gps_points = house_gps_points
