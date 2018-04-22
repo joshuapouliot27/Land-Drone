@@ -196,11 +196,11 @@ def setMotorDirection(isLeft, forw):
 setup_gpio_pins()
 setupLogging()
 setMotorDirection(True, True)
-setMotorDirection(False, True)
+#setMotorDirection(False, True)
 isStopped = True
 isForward = True
 left_motor_pwm.stop()
-right_motor_pwm.stop()
+#right_motor_pwm.stop()
 
 while True:
 
@@ -209,17 +209,17 @@ while True:
         break
     elif driver_motor_hz is 0:
         left_motor_pwm.stop()
-        right_motor_pwm.stop()
+        #right_motor_pwm.stop()
         isStopped = True
     elif driver_motor_hz is -2:
         if isForward:
             setMotorDirection(True, False)
-            setMotorDirection(False, False)
+            #setMotorDirection(False, False)
             isForward = False
             print("MOTORS GOING FORWARD")
         else:
             setMotorDirection(True, True)
-            setMotorDirection(False, True)
+            #(False, True)
             isForward = True
             print("MOTORS GOING BACKWARD")
     elif driver_motor_hz < 0 or driver_motor_hz > 20000:
@@ -227,11 +227,11 @@ while True:
     else:
         if isStopped:
             left_motor_pwm.start(50)
-            right_motor_pwm.start(50)
+            #right_motor_pwm.start(50)
             print("STARTED MOTORS!")
             isStopped = False
         setMotorSpeed(True, driver_motor_hz)
-        setMotorSpeed(False, driver_motor_hz)
+        #setMotorSpeed(False, driver_motor_hz)
         print("driver motor at " + str(driver_motor_hz) + "Hz.")
 
     time.sleep(loop_Delay / 1000)
