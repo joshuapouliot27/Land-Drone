@@ -360,7 +360,7 @@ def set_motor_speed(percent, emergency=False, is_left=None):
 
 def set_motor_direction(is_left, forward):
     if is_left:
-        GPIO.output(left_motor_direction_pin, not forward)
+        GPIO.output(left_motor_direction_pin, forward)
     else:
         GPIO.output(right_motor_direction_pin, forward)
 
