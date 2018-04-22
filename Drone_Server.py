@@ -59,8 +59,8 @@ trace_loop = False
 all_stop = False
 less_turn_percent = 0.35 # what percent less should a motor turn while in auto mated to turn while moving forward
 right_motor_less_pwm_percent = 0.50 # change to make motors go at same speed, right motor turns at (1-right_motor_less_pwm_percent)% of left motor
-left_max_motor_pwm = 4000
-right_max_motor_pwm = 7500
+left_max_motor_pwm = 1000
+right_max_motor_pwm = 1000
 max_left_pwm = int((((500 / (1 - right_motor_less_pwm_percent)) / less_turn_percent) / right_max_motor_pwm)
                    * left_max_motor_pwm)
 max_right_pwm = int((max_left_pwm / left_max_motor_pwm) * right_max_motor_pwm * (1-right_motor_less_pwm_percent))
