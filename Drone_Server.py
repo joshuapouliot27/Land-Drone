@@ -303,6 +303,7 @@ def ramp_pwm(end, is_left):
 
 
 def set_pwm_freq(is_left, freq):
+    print("current pwm: "+str(freq)+", left?: "+str(is_left))
     global current_pwm
     if is_left:
         if freq is current_pwm[0]:
