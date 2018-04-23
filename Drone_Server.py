@@ -1,4 +1,3 @@
-import gpsd
 import json
 import logging
 import math
@@ -135,30 +134,30 @@ def set_json_variables(json_string):
     automated_mode = bool(json_data["automated"])
 
 
-def get_position():
-    global current_latitude, current_longitude, current_direction_degrees
-    gps_packet = gpsd.get_current()
-    if gps_packet.mode > 1:
-        if len(gps_lat_points) >= gps_points_num_averaging:
-            for point in gps_lat_points:
-                gps_lat_points.remove(point)
-                break
-        if len(gps_lon_points) >= gps_points_num_averaging:
-            for point in gps_lon_points:
-                gps_lon_points.remove(point)
-                break
-        if len(direction_points) >= gps_points_num_averaging:
-            for point in direction_points:
-                direction_points.remove(point)
-                break
-        gps_lat_points.add(gps_packet.lat)
-        gps_lon_points.add(gps_packet.lon)
-        direction_points.add(gps_packet.track)
-        current_direction_degrees = math.fsum(direction_points) / len(direction_points)
-        current_longitude = math.fsum(gps_lon_points) / len(gps_lon_points)
-        current_latitude = math.fsum(gps_lat_points) / len(gps_lat_points)
-    logging.debug("Current Position: Latitude: {0:.2}; Longitude: {1:.2}; direction: {2:.2}"
-                  .format(current_latitude, current_longitude, current_direction_degrees))
+# def get_position():
+#     global current_latitude, current_longitude, current_direction_degrees
+#     gps_packet = gpsd.get_current()
+#     if gps_packet.mode > 1:
+#         if len(gps_lat_points) >= gps_points_num_averaging:
+#             for point in gps_lat_points:
+#                 gps_lat_points.remove(point)
+#                 break
+#         if len(gps_lon_points) >= gps_points_num_averaging:
+#             for point in gps_lon_points:
+#                 gps_lon_points.remove(point)
+#                 break
+#         if len(direction_points) >= gps_points_num_averaging:
+#             for point in direction_points:
+#                 direction_points.remove(point)
+#                 break
+#         gps_lat_points.add(gps_packet.lat)
+#         gps_lon_points.add(gps_packet.lon)
+#         direction_points.add(gps_packet.track)
+#         current_direction_degrees = math.fsum(direction_points) / len(direction_points)
+#         current_longitude = math.fsum(gps_lon_points) / len(gps_lon_points)
+#         current_latitude = math.fsum(gps_lat_points) / len(gps_lat_points)
+#     logging.debug("Current Position: Latitude: {0:.2}; Longitude: {1:.2}; direction: {2:.2}"
+#                   .format(current_latitude, current_longitude, current_direction_degrees))
 
 
 def get_sonar_distance():
@@ -230,21 +229,21 @@ def setup():
     logging.info("Setup complete!")
 
 
-def setup_gps():
-    gpsd.connect()
-    packet = gpsd.get_current()
-    if packet.mode < 2:
-        logging.warning("GPS does not have a fix!")
-    counter = 0
-    while packet.mode < 2:
-        if counter > 150:
-            logging.error("GPS cannot get a fix!")
-            return
-        packet = gpsd.get_current()
-        logging.warning("GPS still does not have a fix.")
-        counter += 1
-        time.sleep(.2)
-    logging.info("GPS has fix.")
+# def setup_gps():
+#     gpsd.connect()
+#     packet = gpsd.get_current()
+#     if packet.mode < 2:
+#         logging.warning("GPS does not have a fix!")
+#     counter = 0
+#     while packet.mode < 2:
+#         if counter > 150:
+#             logging.error("GPS cannot get a fix!")
+#             return
+#         packet = gpsd.get_current()
+#         logging.warning("GPS still does not have a fix.")
+#         counter += 1
+#         time.sleep(.2)
+#     logging.info("GPS has fix.")
 
 
 def setup_logging():
@@ -434,14 +433,14 @@ def sonar_loop():
         time.sleep(1 / sonar_frequency)
 
 
-def gps_loop():
-    while True:
-        if all_stop:
-            break
-        if trace_loop:
-            print("gps loop")
-        get_position()
-        time.sleep(1 / gps_frequency)
+# def gps_loop():
+#     while True:
+#         if all_stop:
+#             break
+#         if trace_loop:
+#             print("gps loop")
+#         get_position()
+#         time.sleep(1 / gps_frequency)
 
 
 def web_socket_loop():
