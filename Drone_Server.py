@@ -219,10 +219,10 @@ def setup():
     GPIO.setmode(GPIO.BOARD)
 
     # GPS
-    setup_gps()
+    #setup_gps()
 
     # Sonar
-    setup_sonar()
+    #setup_sonar()
 
     # Motor Drivers
     setup_motor_drivers()
@@ -511,103 +511,34 @@ def main_loop():
         if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
             print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed("+str(current_distance_ahead)+" ft), emergency stopping")
             set_motor_speed(0, True)
-        if not automated_mode:
-            if was_automated:
-                reset_gps_target()
-                was_automated = False
-                set_motor_speed(0)
-                set_motor_direction(True, True)
-                set_motor_direction(False, True)
-                dir_left = False
-                dir_backward = False
-                dir_forward = False
-                dir_right = False
-                time_last_turn_start = 0
-                finished = False
             # if direction isn't proper, then stop moving change direction and start moving
-            if not is_proper_direction() and not stop_everything:
-                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "changing proper direction")
-                if is_moving():
-                    set_motor_speed(0)
-                set_proper_direction()
-                time.sleep(.1)
-                set_motor_speed(1)
-
-            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
-                set_motor_speed(0, True)
-
-            # If distance is fine and remote button isn't pressed and not moving, then start moving
-            if current_distance_ahead > sonar_min_distance and not is_moving() \
-                    and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
-                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "starting motors...")
-                set_motor_speed(1)
-
-            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
-                set_motor_speed(0, True)
-
-            # if not supposed to be moving, but is moving then stop moving
-            if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
-                    and is_moving():
-                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "stopping motion")
+        if not is_proper_direction() and not stop_everything:
+            print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "changing proper direction")
+            if is_moving():
                 set_motor_speed(0)
-        else:
-            if not was_automated:
-                reset_gps_target()
-                set_motor_speed(0)
-                set_motor_direction(True, True)
-                set_motor_direction(False, True)
-                was_automated = True
-                dir_left = False
-                dir_backward = False
-                dir_forward = False
-                dir_right = False
-                gps_target = get_next_gps_target()
-                time_last_turn_start = 0
-                finished = False
+            set_proper_direction()
+            time.sleep(.1)
+            set_motor_speed(1)
 
-            current_distance_away = Math.distance_between_points(current_latitude, gps_target[0],
-                                                                 current_longitude, gps_target[1])
-            direction_target = Math.heading_between_points(current_latitude, gps_target[0],
-                                                           current_longitude, gps_target[1])
-            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
-                set_motor_speed(0, True)
+        if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
+            print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
+            set_motor_speed(0, True)
 
-            time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
-            if not correct_automated_direction() and not stop_everything and not finished \
-                    and time_since_last_turn >= turn_min_time:
-                if should_turn_left():
-                    set_motor_speed(1 - less_turn_percent, False, True)
-                    set_motor_speed(1, False, False)
-                    time_last_turn_start = time.time()
-                    time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
-                else:
-                    set_motor_speed(1, False, True)
-                    set_motor_speed(1 - less_turn_percent, False, False)
-                    time_last_turn_start = time.time()
-                    time_since_last_turn = math.fabs(time.time() - time_last_turn_start)
-            elif current_distance_ahead >= sonar_min_distance and not stop_everything \
-                    and (current_pwm[0] < max_left_pwm or current_pwm[1] < max_right_pwm) \
-                    and current_distance_away >= gps_tolerance and not finished \
-                    and time_since_last_turn < turn_min_time:
-                set_motor_speed(1)
-                time_last_turn_start = time.time()
+        # If distance is fine and remote button isn't pressed and not moving, then start moving
+        if current_distance_ahead > sonar_min_distance and not is_moving() \
+                and (moving_right or moving_left or moving_forward or moving_backward) and not stop_everything:
+            print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "starting motors...")
+            set_motor_speed(1)
 
-            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
-                set_motor_speed(0, True)
+        if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
+            print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
+            set_motor_speed(0, True)
 
-            if current_distance_away <= gps_tolerance and not finished:
-                gps_target = get_next_gps_target()
-                if gps_target is None:
-                    finished = True
-                    set_motor_speed(0)
-
-            if (stop_everything or current_distance_ahead <= sonar_min_distance) and is_moving():
-                print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "obstacle in the way or stop pressed, emergency stopping")
-                set_motor_speed(0, True)
+        # if not supposed to be moving, but is moving then stop moving
+        if ((not moving_backward and not moving_forward and not moving_left and not moving_right) or stop_everything) \
+                and is_moving():
+            print(time.strftime('{%Y-%m-%d %H:%M:%S} ') + "stopping motion")
+            set_motor_speed(0)
 
         time.sleep(1 / main_loop_frequency)
 
@@ -617,7 +548,7 @@ try:
     print("Setup complete!")
     thread = Background_Thread(web_socket_loop)
     #thread3 = Background_Thread(sonar_loop)
-    thread2 = Background_Thread(gps_loop)
+    #thread2 = Background_Thread(gps_loop)
     thread4 = Background_Thread(main_loop)
     while True:
         time.sleep(.01)
